@@ -1,0 +1,10 @@
+
+x86-64 paging:
+
+CR3		-> PML4		(256 TB)
+PML4		-> 512 PDPTs	(each PDPT 512 GB)
+PDPT		-> 512 PDs	(each PD 1 GB)
+PD		-> 512 PTs	(each PT 2 MB)
+PT		-> 512 pages	(each page 4 KB)
+
+
