@@ -1,6 +1,6 @@
 CC=cc
 PREFIX=/usr/local
-CFLAGS=-O2 -Wall -Wextra -pipe
+CFLAGS=-O2 -w -pipe
 
 .PHONY: echfs-utils clean install
 
