@@ -5,6 +5,6 @@ bootmgr.bin:
 	@nasm -f bin stage2/bootmgr.asm -o bootmgr.bin
 
 clean:
-	@rm -f stage1/*.bin bootmgr.bin
+	@rm -f stage1/*.bin *.bin
 
 

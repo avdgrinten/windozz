@@ -28,16 +28,28 @@ start:
 	mov ax, 0x1000
 	mov ss, ax
 
-	mov [bootdisk], dl
+	mov byte[boot_info.bootdisk], dl
 
 	sti
 	nop
 
-	mov si, banner
-	call print
+	mov ah, 0x0F
+	int 0x10
+	cmp al, 3
+	je .mode_good
 
+	mov ax, 3
+	int 0x10
+
+	; show signs of life
+	;mov si, banner
+	;call print
+	;mov si, newline
+	;call print
+
+.mode_good:
 	; booting from CD or HDD?
-	cmp byte[bootdisk], 0xE0
+	cmp byte[boot_info.bootdisk], 0xE0
 	jge .cd
 
 .hdd:
@@ -48,18 +60,54 @@ start:
 	mov byte[boot_info.bios_optical], 1
 
 .next:
+	; 64-bit CPU?
+	mov eax, 0x80000000
+	cpuid
+
+	cmp eax, 0x80000001
+	mov si, no_64
+	jl error
+
+	mov eax, 0x80000001
+	cpuid
+
+	and edx, 0x20000000
+	mov si, no_64
+	jz error
+
 	call detect_memory
 	call do_a20
-	call setup_paging
 
-	jmp $
+	cmp byte[boot_info.bios_optical], 0
+	je .load_hdd
+
+	; CD here
+	mov si, cd_msg
+	jmp error
+
+.load_hdd:
+	cmp byte[partition.type], 0xF3
+	mov si, bad_fs_msg
+	jne error
+
+	mov si, kernel_filename
+	mov edi, 0x100000
+	call echfs_load
+
+	cli
+	hlt
 
 	%include			"stage2/io.asm"
 	%include			"stage2/system.asm"
+	%include			"stage2/echfs.asm"
+	%include			"stage2/vbe.asm"
 
-	; Data area
 	banner				db "Windozz Boot Manager", 0
 	newline				db 10, 0
+	no_64				db "CPU is not 64-bit capable.",0
+	cd_msg				db "optical disc boot not implemented yet.",0
+	bad_fs_msg			db "unsupported HDD filesystem.",0
+	kernel_filename			db "winkern", 0
 
 	align 8
 	partition:
@@ -74,10 +122,7 @@ start:
 		.lba			dd 0
 		.size			dd 0
 
-	bootdisk			db 0
-
-	; Data passed to kernel
-	align 8
+	align 16
 	boot_info:
 		.signature		db "WNDZ"	; magic
 		.version		dd 0x00010000	; high = major, low = minor
@@ -93,18 +138,17 @@ start:
 
 		; the following fields are only valid if boot_info.uefi == 0 (i.e. BIOS systems)
 		.bios_optical		dq 0		; boot medium, 0 = HDD, 1 = optical disc
+		.bootdisk		dq 0		; only low byte is significant
 		.mbr_partition:		dq partition	; pointer to MBR partition info, only valid for HDD ofc
 		.bios_edd_info		dq 0		; BIOS EDD information
 
-		.vbe_mode_info		dq 0		; pointer to VBE Mode Info
 		.vbe_bios_info		dq 0		; pointer to VBE BIOS Info
+		.vbe_mode_info		dq 0		; pointer to VBE Mode Info
 
 		; TO-DO: Define UEFI fields here.
 		.reserved_for_uefi:	times 16 dq 0
 
-	align 8
+	align 16
 	e820_map:
-		; empty reserved space
-
 
 

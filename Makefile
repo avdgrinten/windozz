@@ -1,4 +1,6 @@
 
+all: disk.hdd
+
 disk.hdd:
 	@make -C echfs-utils
 	@make -C bootmgr
@@ -14,6 +16,9 @@ disk.hdd:
 	@dd status=none if=part.hdd bs=512 conv=notrunc count=20480 seek=63 of=disk.hdd
 	@dd status=none if=bootmgr/stage1/mbr.bin bs=512 count=1 conv=notrunc of=disk.hdd
 	@rm -f part.hdd
+
+run:
+	qemu-system-x86_64 -hda disk.hdd -serial stdio
 
 clean:
 	@rm -f disk.hdd
