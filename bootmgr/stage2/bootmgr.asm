@@ -75,6 +75,14 @@ start:
 	mov si, no_64
 	jz error
 
+	; detect EDD info
+	mov ah, 0x48
+	mov dl, byte[boot_info.bootdisk]
+	mov si, edd_info
+	int 0x13
+	mov si, edd_error_msg
+	jc error
+
 	call detect_memory
 	call do_a20
 
@@ -94,19 +102,86 @@ start:
 	mov edi, 0x100000
 	call echfs_load
 
+.execute_kernel:
+	call setup_paging
+	call do_vbe
+
+	; tell the BIOS we're entering long mode, don't even know what this does tbh
+	mov eax, 0xEC00
+	mov ebx, 2
+	int 0x15
+
+	; mask the PICs allowing BIOS to handle any pending IRQs
+	mov al, 0xFF
+	out 0x21, al
+	out 0xA1, al
+
+	mov ecx, 0xFFFF
+
+.pic_wait:
+	sti
+	nop
+	nop
+	nop
+	nop
+	loop .pic_wait
+
 	cli
-	hlt
+	lgdt [gdtr]
+
+	; enable PAE, PSE and SSE
+	mov eax, 0x630
+	mov cr4, eax
+
+	mov eax, cr0
+	and eax, 0xFFFFFFFB
+	or eax, 2
+	mov cr0, eax
+
+	mov eax, PML4
+	mov cr3, eax
+
+	mov ecx, 0xC0000080
+	rdmsr
+	or eax, 0x100
+	wrmsr
+
+	; enable long mode, caching, paging, write security
+	mov eax, cr0
+	or eax, 0x80010001
+	and eax, 0x9FFFFFFF
+	mov cr0, eax
+
+	jmp 0x28:.lmode
+
+bits 64
+
+.lmode:
+	mov rax, 0x30
+	mov ss, ax
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	movzx rsp, sp
+	add rsp, 0x10000
+
+	mov rbp, boot_info
+	mov rax, 0xFFFF800000100000
+	jmp rax
 
 	%include			"stage2/io.asm"
 	%include			"stage2/system.asm"
 	%include			"stage2/echfs.asm"
 	%include			"stage2/vbe.asm"
+	%include			"stage2/paging.asm"
 
 	banner				db "Windozz Boot Manager", 0
 	newline				db 10, 0
 	no_64				db "CPU is not 64-bit capable.",0
 	cd_msg				db "optical disc boot not implemented yet.",0
-	bad_fs_msg			db "unsupported HDD filesystem.",0
+	bad_fs_msg			db "unsupported filesystem.",0
+	edd_error_msg			db "BIOS EDD geometry function failed.",0
 	kernel_filename			db "winkern", 0
 
 	align 8
@@ -121,6 +196,30 @@ start:
 					db 0
 		.lba			dd 0
 		.size			dd 0
+
+	align 8
+	edd_info:
+		; all versions
+		.size			dw 0x42		; requested size
+		.flags			dw 0
+		.cylinders		dd 0
+		.heads			dd 0
+		.sectors		dd 0
+		.total_sectors		dq 0
+		.bytes_per_sector	dw 0
+
+		; EDD 2.0+
+		.edd_config_parameters	dd 0
+
+		; EDD 3.0
+		.signature		dw 0
+		.device_path_length	db 0
+		.reserved:		times 3 db 0
+		.host_bus:		times 4 db 0
+		.interface_type:	times 8 db 0
+		.interface_path:	times 8 db 0
+		.reserved2		db 0
+		.checksum		db 0
 
 	align 16
 	boot_info:
@@ -140,7 +239,7 @@ start:
 		.bios_optical		dq 0		; boot medium, 0 = HDD, 1 = optical disc
 		.bootdisk		dq 0		; only low byte is significant
 		.mbr_partition:		dq partition	; pointer to MBR partition info, only valid for HDD ofc
-		.bios_edd_info		dq 0		; BIOS EDD information
+		.bios_edd_info		dq edd_info	; BIOS EDD information
 
 		.vbe_bios_info		dq 0		; pointer to VBE BIOS Info
 		.vbe_mode_info		dq 0		; pointer to VBE Mode Info

@@ -6,7 +6,7 @@ bits 16
 
 detect_memory:
 	; get the E820 memory map
-	mov di, e820_map
+	mov di, e820_map+2
 	mov edx, 0x534D4150
 	xor ebx, ebx
 
@@ -23,10 +23,12 @@ detect_memory:
 	je .check_error
 
 	and cx, 0xFF
-	add word[boot_info.e820_map_size], cx
+	mov [di-2], cx
+
+	add word[boot_info.e820_map_size], 32
 	inc word[boot_info.e820_map_entries]
 
-	add di, cx
+	add di, 32
 	jmp .loop
 
 .check_error:
@@ -155,6 +157,22 @@ gdt:
 	db 0x00			; base middle
 	db 10010010b		; access byte
 	db 10001111b		; flags and limit high
+	db 0x00			; base high
+
+	; 0x28 - 64-bit code
+	dw 0xFFFF		; limit low
+	dw 0x0000		; base low
+	db 0x00			; base middle
+	db 10011010b		; access byte
+	db 10101111b		; flags and limit high
+	db 0x00			; base high
+
+	; 0x30 - 64-bit data
+	dw 0xFFFF		; limit low
+	dw 0x0000		; base low
+	db 0x00			; base middle
+	db 10010010b		; access byte
+	db 10101111b		; flags and limit high
 	db 0x00			; base high
 
 end_of_gdt:
