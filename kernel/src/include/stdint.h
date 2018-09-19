@@ -22,21 +22,22 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+typedef signed short int16_t;
+typedef unsigned short uint16_t;
 
-	while(1);
-}
+typedef signed int int32_t;
+typedef unsigned int uint32_t;
 
+typedef signed long long int64_t;
+typedef unsigned long long uint64_t;
+
+typedef uint64_t size_t;
+typedef int64_t ssize_t;
 
 
 

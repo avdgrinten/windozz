@@ -1,7 +1,5 @@
 
-all: disk.hdd
-
-disk.hdd:
+all:
 	@make -C echfs-utils
 	@make -C bootmgr
 	@make -C kernel

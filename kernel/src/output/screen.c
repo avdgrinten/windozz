@@ -23,19 +23,17 @@
  */
 
 #include <bootmgr.h>
-#include <string.h>
 #include <screen.h>
-#include <debug.h>
+#include <mutex.h>
+#include <io.h>
+#include <mm.h>
 
-boot_info_t boot_info;
+screen_t screen;
 
-void kmain(boot_info_t *boot_info_tmp)
+void screen_init()
 {
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-
-	while(1);
 }
+
 
 
 

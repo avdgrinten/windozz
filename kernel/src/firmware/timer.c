@@ -22,21 +22,11 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+/* Timer abstraction */
 
-boot_info_t boot_info;
+#include <stdint.h>
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-
-	while(1);
-}
-
+uint64_t timer_ticks = 0;
 
 
 

@@ -22,21 +22,19 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+#include <stdint.h>
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+extern void outb(uint16_t, uint8_t);
+extern void outw(uint16_t, uint16_t);
+extern void outd(uint16_t, uint32_t);
 
-	while(1);
-}
+extern uint8_t inb(uint16_t);
+extern uint16_t inw(uint16_t);
+extern uint32_t ind(uint16_t);
 
+extern void iowait();
 
 
 

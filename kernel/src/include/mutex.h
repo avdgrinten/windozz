@@ -22,23 +22,17 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+#include <stdint.h>
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+typedef uint64_t mutex_t;
 
-	while(1);
-}
+#define MUTEX_BUSY			0x01
+#define MUTEX_FREE			0x00
 
-
-
+void acquire(mutex_t *);
+void release(mutex_t *);
 
 
 

@@ -22,23 +22,25 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+#include <stdint.h>
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+/* for ltoa() */
+#define OCTAL				8
+#define DECIMAL				10
+#define HEX				16
 
-	while(1);
-}
-
-
-
+size_t strlen(const char *);
+void *memmove(void *, const void *, size_t);
+void *memcpy(void *, const void *, size_t);
+char *strcpy(char *, const char *);
+char *itoa(int, char *, int);
+char *ltoa(long, char *, int);
+int atoi(const char *);
+void *memset(void *, int, size_t);
+char *lowercase(char *);
+char *uppercase(char *);
 
 
 

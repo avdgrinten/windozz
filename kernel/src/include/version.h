@@ -22,23 +22,9 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
-
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-
-	while(1);
-}
-
-
-
+#define VERSION			"Windozz 0.1 pre-alpha built on " __DATE__ "\n"
 
 
 

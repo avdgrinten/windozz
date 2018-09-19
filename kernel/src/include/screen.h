@@ -22,22 +22,25 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+#include <stdint.h>
+#include <mutex.h>
 
-void kmain(boot_info_t *boot_info_tmp)
+uint8_t font[4096];
+
+typedef struct screen_t
 {
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+	mutex_t mutex;
+	uint16_t width, height, pitch;
+	uint16_t max_x, max_y;		/* for debug terminal */
+	uint32_t bg, fg;
+	uint32_t *framebuffer;
 
-	while(1);
-}
+	char *adapter_vendor, *adapter_product;
+} screen_t;
 
-
+void screen_init();
 
 
 

@@ -1,4 +1,4 @@
-CC=cc
+CC=clang
 PREFIX=/usr/local
 CFLAGS=-O2 -w -pipe
 

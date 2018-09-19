@@ -22,21 +22,20 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <screen.h>
-#include <debug.h>
+#pragma once
 
-boot_info_t boot_info;
+#define LEVEL_DEBUG			1
+#define LEVEL_WARN			2
+#define LEVEL_ERROR			3
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
+#define DEBUG(...)			debug_printf(LEVEL_DEBUG, MODULE, __VA_ARGS__)
+#define WARN(...)			debug_printf(LEVEL_WARN, MODULE, __VA_ARGS__)
+#define ERROR(...)			debug_printf(LEVEL_ERROR, MODULE, __VA_ARGS__)
 
-	while(1);
-}
+char *debug_buffer;
 
+void debug_init();
+int debug_printf(int, const char *, const char *, ...);
 
 
 
