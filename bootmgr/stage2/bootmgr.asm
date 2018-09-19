@@ -102,7 +102,38 @@ start:
 	mov edi, 0x100000
 	call echfs_load
 
-.execute_kernel:
+.scan_acpi:
+	; scan for ACPI RSDP
+	call go32
+
+bits 32
+
+	mov esi, 0xE0000
+
+.rsdp_loop:
+	push esi
+	mov edi, rsdp_signature
+	mov ecx, 8
+	cld
+	rep cmpsb
+	je .found_rsdp
+
+	pop esi
+	add esi, 16
+	cmp esi, 0xFFFF0
+	jge .no_rsdp
+
+	jmp .rsdp_loop
+
+.found_rsdp:
+	pop esi
+	mov dword[boot_info.acpi_rsdp], esi
+
+	call go16
+
+bits 16
+
+	; setup paging structs and VBE mode
 	call setup_paging
 	call do_vbe
 
@@ -152,11 +183,21 @@ start:
 	and eax, 0x9FFFFFFF
 	mov cr0, eax
 
-	jmp 0x28:.lmode
+	jmp 0x28:lmode
+
+bits 32
+
+.no_rsdp:
+	call go16
+
+bits 16
+
+	mov si, rsdp_msg
+	jmp error
 
 bits 64
 
-.lmode:
+lmode:
 	mov rax, 0x30
 	mov ss, ax
 	mov ds, ax
@@ -166,7 +207,7 @@ bits 64
 	movzx rsp, sp
 	add rsp, 0x10000
 
-	mov rbp, boot_info
+	mov rbp, boot_info + 0xFFFF800000000000
 	mov rax, 0xFFFF800000100000
 	jmp rax
 
@@ -182,7 +223,9 @@ bits 64
 	cd_msg				db "optical disc boot not implemented yet.",0
 	bad_fs_msg			db "unsupported filesystem.",0
 	edd_error_msg			db "BIOS EDD geometry function failed.",0
+	rsdp_msg			db "ACPI root table not found.", 0
 	kernel_filename			db "winkern", 0
+	rsdp_signature			db "RSD PTR "
 
 	align 8
 	partition:
@@ -227,22 +270,27 @@ bits 64
 		.version		dd 0x00010000	; high = major, low = minor
 		.uefi			dq 0		; 0 = BIOS, 1 = UEFI
 							; someday I'll need a UEFI loader
-		.e820_map		dq e820_map
+
+		.e820_map		dq e820_map + 0xFFFF800000000000
 		.e820_map_size		dq 0		; in bytes
 		.e820_map_entries	dq 0		; in entries
 
-		.acpi_rsdp		dq 0		; ACPI RSDP table, search for it in bootloader
-							; because differences between BIOS and UEFI
-		.smbios			dq 0
+		; ACPI RSDP table, search for it in bootloader
+		; because differences between BIOS and UEFI
+		.acpi_rsdp		dq 0xFFFF800000000000
+
+		; same for SMBIOS
+		.smbios			dq 0xFFFF800000000000
 
 		; the following fields are only valid if boot_info.uefi == 0 (i.e. BIOS systems)
 		.bios_optical		dq 0		; boot medium, 0 = HDD, 1 = optical disc
 		.bootdisk		dq 0		; only low byte is significant
-		.mbr_partition:		dq partition	; pointer to MBR partition info, only valid for HDD ofc
-		.bios_edd_info		dq edd_info	; BIOS EDD information
+		.mbr_partition:		dq partition + 0xFFFF800000000000
+		.bios_edd_info		dq edd_info + 0xFFFF800000000000
 
-		.vbe_bios_info		dq 0		; pointer to VBE BIOS Info
-		.vbe_mode_info		dq 0		; pointer to VBE Mode Info
+		; VBE BIOS/mode info structs
+		.vbe_bios_info		dq vbe_bios_info + 0xFFFF800000000000
+		.vbe_mode_info		dq vbe_mode_info + 0xFFFF800000000000
 
 		; TO-DO: Define UEFI fields here.
 		.reserved_for_uefi:	times 16 dq 0
