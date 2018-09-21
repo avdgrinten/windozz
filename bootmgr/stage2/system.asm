@@ -19,14 +19,14 @@ detect_memory:
 	cmp eax, 0x534D4150
 	jne .error
 
+	add word[boot_info.e820_map_size], 32
+	inc word[boot_info.e820_map_entries]
+
 	cmp ebx, 0
 	je .check_error
 
 	and cx, 0xFF
 	mov [di-2], cx
-
-	add word[boot_info.e820_map_size], 32
-	inc word[boot_info.e820_map_entries]
 
 	add di, 32
 	jmp .loop
