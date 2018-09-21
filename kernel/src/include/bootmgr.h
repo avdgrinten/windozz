@@ -107,6 +107,15 @@ typedef struct vbe_mode_info_t
 	uint8_t reserved1[206];
 }__attribute__((packed)) vbe_mode_info_t;
 
+typedef struct e820_t
+{
+	uint16_t size;
+	uint64_t base;
+	uint64_t length;
+	uint32_t type;
+	uint32_t acpi3_flags;
+}__attribute__((packed)) e820_t;
+
 boot_info_t boot_info;
 
 

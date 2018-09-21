@@ -104,8 +104,81 @@ iowait:
 	nop
 	ret
 
+; void write_cr0(uint64_t)
+align 8
+global write_cr0
+write_cr0:
+	mov cr0, rdi
+	ret
 
+; void write_cr3(uint64_t)
+align 8
+global write_cr3
+write_cr3:
+	mov cr3, rdi
+	ret
 
+; void write_cr4(uint64_t)
+align 8
+global write_cr4
+write_cr4:
+	mov cr4, rdi
+	ret
+
+; uint64_t read_cr0()
+align 8
+global read_cr0
+read_cr0:
+	mov rax, cr0
+	ret
+
+; uint64_t read_cr2()
+align 8
+global read_cr2
+read_cr2:
+	mov rax, cr2
+	ret
+
+; uint64_t read_cr3()
+align 8
+global read_cr3
+read_cr3:
+	mov rax, cr3
+	ret
+
+; uint64_t read_cr4()
+align 8
+global read_cr4
+read_cr4:
+	mov rax, cr4
+	ret
+
+; void write_msr(uint32_t, uint64_t)
+align 8
+global write_msr
+write_msr:
+	mov ecx, edi
+	mov eax, esi
+	mov rdx, rsi
+	shr rdx, 32
+	wrmsr
+
+	ret
+
+; uint64_t read_msr(uint32_t)
+align 8
+global read_msr
+read_msr:
+	mov ecx, edi
+	rdmsr
+
+	xor rcx, rcx
+	not ecx		; ecx = all ones
+
+	and rax, rcx
+	shl rdx, 32
+	or rax, rdx
+	ret
 
 
 

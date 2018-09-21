@@ -22,23 +22,22 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <debug.h>
-#include <screen.h>
-#include <mm.h>
+#pragma once
 
-boot_info_t boot_info;
+#include <stdint.h>
 
-void kmain(boot_info_t *boot_info_tmp)
-{
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-	screen_init();
-	mm_init();
+void write_cr0(uint64_t);
+void write_cr3(uint64_t);
+void write_cr4(uint64_t);
 
-	while(1);
-}
+uint64_t read_cr0();
+uint64_t read_cr2();
+uint64_t read_cr3();
+uint64_t read_cr4();
+
+void write_msr(uint32_t, uint64_t);
+uint64_t read_msr(uint32_t);
+
 
 
 

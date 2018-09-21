@@ -22,22 +22,14 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <string.h>
-#include <debug.h>
-#include <screen.h>
+/* Windozz memory manager abstraction */
+
 #include <mm.h>
 
-boot_info_t boot_info;
-
-void kmain(boot_info_t *boot_info_tmp)
+void mm_init()
 {
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-	screen_init();
-	mm_init();
-
-	while(1);
+	pmm_init();
+	vmm_init();
 }
 
 
