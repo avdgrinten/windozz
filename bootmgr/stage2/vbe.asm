@@ -77,6 +77,47 @@ vbe_edid:
 	.extension_flag		db 0
 	.checksum		db 0
 
+do_edid:
+	mov ax, 0x4F15
+	mov bx, 1
+	xor cx, cx
+	mov dx, cx
+	mov di, vbe_edid
+	int 0x10
+
+	cmp ax, 0x4F
+	jne .error
+
+	movzx ax, byte[vbe_edid.detailed_timings+2]
+	movzx bx, byte[vbe_edid.detailed_timings+4]
+	shl bx, 4
+	or ax, bx
+
+	mov [vbe_width], ax
+
+	movzx ax, byte[vbe_edid.detailed_timings+5]
+	movzx bx, byte[vbe_edid.detailed_timings+7]
+	shl bx, 4
+	or ax, bx
+
+	mov [vbe_height], ax
+
+	cmp word[vbe_width], 0
+	je .error
+
+	cmp word[vbe_height], 0
+	je .error
+
+	ret
+
+.error:
+	mov si, .msg
+	call print
+
+	ret
+
+.msg				db "warning: VBE EDID not supported", 10, 0
+
 do_vbe:
 	mov dword[vbe_bios_info.signature], "VBE2"
 	mov ax, 0x4F00
@@ -93,7 +134,7 @@ do_vbe:
 	cmp word[vbe_bios_info.version], 0x200
 	jl error
 
-	;call do_edid
+	call do_edid
 
 	mov ax, [vbe_width]
 	mov bx, [vbe_height]

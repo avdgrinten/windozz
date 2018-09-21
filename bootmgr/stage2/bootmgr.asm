@@ -41,13 +41,13 @@ start:
 	mov ax, 3
 	int 0x10
 
-	; show signs of life
-	;mov si, banner
-	;call print
-	;mov si, newline
-	;call print
-
 .mode_good:
+	; show signs of life
+	mov si, banner
+	call print
+	mov si, newline
+	call print
+
 	; booting from CD or HDD?
 	cmp byte[boot_info.bootdisk], 0xE0
 	jge .cd
