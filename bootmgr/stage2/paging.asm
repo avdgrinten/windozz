@@ -38,7 +38,7 @@ bits 32
 	; now build the PDPT - each entry maps 1 GB
 	mov edi, PDPT
 	mov ebx, PD
-	mov ecx, 4		; 4 GB
+	mov ecx, 8		; 8 GB
 
 .pdpt_loop:
 	mov eax, ebx
@@ -53,16 +53,17 @@ bits 32
 	; now build the page directory - each entry maps 2 MB
 	mov edi, PD
 	mov ebx, 0
-	mov ecx, 4096/2
+	mov edx, 0
+	mov ecx, 8192/2
 
 .pd_loop:
 	mov eax, ebx
 	or eax, 0x83
 	stosd
-	xor eax, eax
+	mov eax, edx
 	stosd
 
-	add ebx, 4096
+	add ebx, 0x200000
 	cmp ebx, 0
 	je .inc_high
 

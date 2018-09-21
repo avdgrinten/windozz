@@ -33,11 +33,10 @@ void kmain(boot_info_t *boot_info_tmp)
 {
 	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
 	debug_init();
+	screen_init();
 
 	while(1);
 }
-
-
 
 
 

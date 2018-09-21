@@ -28,6 +28,16 @@ section .startup
 global _start
 _start:
 	cld
+
+	; clear the BSS
+	extern bss
+	extern bssend
+	mov rdi, bss
+	mov rcx, bssend
+	sub rcx, rdi
+	xor rax, rax
+	rep stosb
+
 	mov rsp, stack_top
 
 	mov rdi, rbp
@@ -42,7 +52,7 @@ _start:
 section .bss
 
 align 16
-stack_bottom:			resb 16384
+stack_bottom:			resb 32768
 stack_top:
 
 

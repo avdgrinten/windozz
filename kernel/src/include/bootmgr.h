@@ -61,8 +61,10 @@ typedef struct vbe_bios_info_t
 	uint32_t video_modes;
 	uint16_t vram_size;
 	uint16_t software_rev;
-	uint32_t vendor_string;
-	uint32_t product_string;
+	uint16_t vendor_string_offset;
+	uint16_t vendor_string_segment;
+	uint16_t product_string_offset;
+	uint16_t product_string_segment;
 	uint32_t product_rev;
 
 	uint8_t reserved[222];

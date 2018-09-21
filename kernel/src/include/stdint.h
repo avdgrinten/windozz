@@ -39,6 +39,9 @@ typedef unsigned long long uint64_t;
 typedef uint64_t size_t;
 typedef int64_t ssize_t;
 
+typedef uint64_t uintptr_t;
+typedef int64_t intptr_t;
+
 
 
 

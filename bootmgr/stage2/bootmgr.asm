@@ -140,7 +140,7 @@ bits 16
 	; tell the BIOS we're entering long mode, don't even know what this does tbh
 	mov eax, 0xEC00
 	mov ebx, 2
-	int 0x15
+	;int 0x15
 
 	; mask the PICs allowing BIOS to handle any pending IRQs
 	mov al, 0xFF

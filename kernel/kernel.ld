@@ -22,7 +22,9 @@ SECTIONS
 	}
 
 	.bss : {
+		bss = .; _bss = .; __bss = .;
 		*(.bss)
+		bssend = .; _bssend = .; __bssend = .;
 	}
 
 	end = .;

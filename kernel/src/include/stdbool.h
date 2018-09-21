@@ -22,19 +22,12 @@
  * SOFTWARE.
  */
 
-#include <bootmgr.h>
-#include <screen.h>
-#include <mutex.h>
-#include <io.h>
-#include <mm.h>
+#pragma once
 
-screen_t screen;
+typedef unsigned char bool;
 
-void screen_init()
-{
-}
-
-
+#define true			1
+#define false			0
 
 
 

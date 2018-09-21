@@ -33,14 +33,16 @@
 #include <timer.h>
 #include <mutex.h>
 #include <stddef.h>
+#include <screen.h>
 
 mutex_t com1_mutex = MUTEX_FREE;
 
 uint16_t com1_base = 0;
 
-char tmp_debug_buffer[8192];
+char tmp_debug_buffer[32768];
 char *debug_buffer = tmp_debug_buffer;
 size_t debug_buffer_size = 0;
+int display_debug = 0;
 
 static char *pad(char *destination, const char *source, size_t new_size, char val)
 {
@@ -65,7 +67,7 @@ static char *pad(char *destination, const char *source, size_t new_size, char va
 	return destination;
 }
 
-static size_t copy_number(char *destination, const char *source)
+size_t copy_number(char *destination, const char *source)
 {
 	size_t i;
 	for(i = 0; source[i] >= '0' && source[i] <= '9'; i++)
@@ -113,6 +115,11 @@ void debug_putc(char val)
 		}
 
 		outb(com1_base, val);
+	}
+
+	if(display_debug)
+	{
+		putc(get_bootfb(), val);
 	}
 
 	debug_buffer[debug_buffer_size] = val;
@@ -168,8 +175,9 @@ int debug_printf(int level, const char *module, const char *fmt, ...)
 
 	if(module)
 	{
+		debug_puts("\e[35m");
 		debug_puts(module);
-		debug_puts(": ");
+		debug_puts(":\e[0m ");
 	}
 
 	size_t i = 0;
