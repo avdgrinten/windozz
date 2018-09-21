@@ -40,6 +40,7 @@ align 8
 global release
 release:
 	mov byte[rdi], 0
+	ret
 
 ; void outb(uint16_t, uint8_t)
 align 8
