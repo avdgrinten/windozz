@@ -2,8 +2,6 @@ CC=clang
 PREFIX=/usr/local
 CFLAGS=-O2 -w -pipe
 
-.PHONY: echfs-utils clean install
-
 echfs-utils:
 	@$(CC) $(CFLAGS) echfs-utils.c -o echfs-utils
 
