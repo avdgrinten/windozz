@@ -164,7 +164,7 @@ int debug_printf(int level, const char *module, const char *fmt, ...)
 
 	debug_puts("[");
 	ltoa((long)timer_ticks / TIMER_FREQUENCY, integer_buffer, DECIMAL);
-	pad(padded_buffer, integer_buffer, 8, ' ');
+	pad(padded_buffer, integer_buffer, 6, ' ');
 	debug_puts(padded_buffer);
 
 	debug_puts(".");
