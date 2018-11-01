@@ -1,6 +1,8 @@
-
-; Windozz
-; Copyright (C) 2018 by Omar Muhamed
+; vbe.asm
+; Copyright (C) 2018 by the Windozz authors (AUTHORS.md). All rights reserved.
+; Use of this source code is governed by a license that can be
+; found in the LICENSE.md file, in the root directory of
+; the source package.
 
 bits 16
 
@@ -231,8 +233,3 @@ vbe_set_mode:		; in: ax/bx/cl = width/height/bpp
 .bpp				db 0
 .mode				dw 0
 .offset				dw 0
-
-
-
-
-

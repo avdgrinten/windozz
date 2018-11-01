@@ -1,6 +1,8 @@
-
-; Windozz
-; Copyright (C) 2018 by Omar Muhamed
+; echfs.asm
+; Copyright (C) 2018 by the Windozz authors (AUTHORS.md). All rights reserved.
+; Use of this source code is governed by a license that can be
+; found in the LICENSE.md file, in the root directory of
+; the source package.
 
 bits 16
 org 0
@@ -147,5 +149,3 @@ error:
 
 	times 510 - ($-$$) db 0
 	dw 0xAA55
-
-
