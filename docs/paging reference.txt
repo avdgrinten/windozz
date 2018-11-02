@@ -1,4 +1,3 @@
-
 x86-64 paging:
 
 CR3		-> PML4		(256 TB)

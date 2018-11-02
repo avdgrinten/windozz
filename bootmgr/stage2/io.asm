@@ -1,6 +1,8 @@
-
-; Windozz
-; Copyright (C) 2018 by Omar Muhamed
+; io.asm
+; Copyright (C) 2018 by the Windozz authors (AUTHORS.md). All rights reserved.
+; Use of this source code is governed by a license that can be
+; found in the LICENSE.md file, in the root directory of
+; the source package.
 
 bits 16
 
@@ -93,5 +95,3 @@ error:
 				db " reviewed and solved. Press Ctrl+Alt+Delete to reboot your PC.", 10, 10
 				db " Error description: ", 10
 				db "  *** ", 0
-
-
