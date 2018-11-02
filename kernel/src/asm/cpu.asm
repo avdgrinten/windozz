@@ -163,3 +163,10 @@ read_msr:
 	shl rdx, 32
 	or rax, rdx
 	ret
+
+; void flush_tlb(uintptr_t)
+align 8
+global flush_tlb
+flush_tlb:
+	invlpg [rdi]
+	ret

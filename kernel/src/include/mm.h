@@ -12,6 +12,9 @@
 
 #define PHYSICAL_MEMORY			0xFFFF800000000000
 
+#define PAGE_SIZE			4096
+#define PAGE_SIZE_SHIFT			12
+
 /* Paging Flags */
 #define PAGE_PRESENT			0x001
 #define PAGE_WRITE			0x002
@@ -30,5 +33,8 @@ void vmm_init();
 void pmm_mark_page_used(uintptr_t);
 void pmm_mark_page_free(uintptr_t);
 bool pmm_get_page(uintptr_t);
+uintptr_t pmm_alloc_page();
 
 uintptr_t vmm_get_page(uintptr_t);
+void vmm_map_page(uintptr_t, uintptr_t, uintptr_t);
+

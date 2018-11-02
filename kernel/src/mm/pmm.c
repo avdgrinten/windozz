@@ -67,6 +67,12 @@ void pmm_init()
 		ERROR("Windozz requires at least 16 MB of memory to boot.\n");
 		while(1);
 	}
+
+	/* mark lowest 8 MB as used */
+	for(i = 0; i < 2048; i++)
+	{
+		pmm_mark_page_used(i << PAGE_SIZE_SHIFT);
+	}
 }
 
 static void e820_add_entry(e820_t *e820)
@@ -183,5 +189,15 @@ uintptr_t pmm_find_in_range(uintptr_t start, uintptr_t end)
 	}
 
 	release(&pmm_mutex);
+	return page;
+}
+
+uintptr_t pmm_alloc_page()
+{
+	uintptr_t page = pmm_find_page();
+	if(!page)
+		return NULL;
+
+	pmm_mark_page_used(page);
 	return page;
 }

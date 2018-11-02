@@ -12,6 +12,8 @@
 #include <screen.h>
 #include <mm.h>
 
+#define MODULE "kmain"
+
 boot_info_t boot_info;
 
 void kmain(boot_info_t *boot_info_tmp)
@@ -20,6 +22,10 @@ void kmain(boot_info_t *boot_info_tmp)
 	debug_init();
 	screen_init();
 	mm_init();
+
+	/* just for testing */
+	vmm_map_page(0x1000, 0x2000, 0x03);
+	vmm_map_page(0x8000, 0x4000, 0x03);
 
 	while(1);
 }

@@ -21,3 +21,5 @@ uint64_t read_cr4();
 
 void write_msr(uint32_t, uint64_t);
 uint64_t read_msr(uint32_t);
+
+void flush_tlb(uintptr_t);
