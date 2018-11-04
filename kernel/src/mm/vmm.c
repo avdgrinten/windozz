@@ -15,6 +15,7 @@
 #include <cpu.h>
 #include <mm.h>
 #include <mutex.h>
+#include <string.h>
 
 mutex_t vmm_mutex = MUTEX_FREE;
 
@@ -106,6 +107,7 @@ void vmm_map_page(uintptr_t virtual, uintptr_t physical, uintptr_t flags)
 		}
 
 		pml4[(virtual >> 39) & 511] = pdpt_ptr | PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+		memset((void *)pdpt_ptr + PHYSICAL_MEMORY, 0, PAGE_SIZE);
 
 		/*DEBUG("allocated a PDPT at 0x%016lX\n", pdpt_ptr);*/
 	}
@@ -125,6 +127,7 @@ void vmm_map_page(uintptr_t virtual, uintptr_t physical, uintptr_t flags)
 		}
 
 		pdpt[(virtual >> 30) & 511] = pd_ptr | PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+		memset((void *)pd_ptr + PHYSICAL_MEMORY, 0, PAGE_SIZE);
 
 		/*DEBUG("allocated a PD at 0x%016lX\n", pd_ptr);*/
 	}
@@ -144,6 +147,7 @@ void vmm_map_page(uintptr_t virtual, uintptr_t physical, uintptr_t flags)
 		}
 
 		pd[(virtual >> 21) & 511] = pt_ptr | PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+		memset((void *)pt_ptr + PHYSICAL_MEMORY, 0, PAGE_SIZE);
 
 		/*DEBUG("allocated a PT at 0x%016lX\n", pt_ptr);*/
 	}
