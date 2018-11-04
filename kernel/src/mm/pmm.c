@@ -123,6 +123,10 @@ void pmm_mark_page_free(uintptr_t addr)
 	size_t bit = (addr / 4096) % 8;
 
 	uint8_t flag = ~(1 << bit);
+
+	if(!(pmm_bitmap[byte] & (1 << bit)))
+		return;
+
 	pmm_bitmap[byte] &= flag;
 
 	used_pages--;
@@ -134,6 +138,10 @@ void pmm_mark_page_used(uintptr_t addr)
 	size_t bit = (addr / 4096) % 8;
 
 	uint8_t flag = (1 << bit);
+
+	if(pmm_bitmap[byte] & (1 << bit))
+		return;
+
 	pmm_bitmap[byte] |= flag;
 
 	used_pages++;
@@ -154,27 +162,21 @@ bool pmm_get_page(uintptr_t addr)
 
 uintptr_t pmm_find_page()
 {
-	acquire(&pmm_mutex);
-
 	uintptr_t page = 0;
 	while(pmm_get_page(page) == true)
 	{
 		page += 4096;
 		if(page >= highest_usable_address - 4096)
 		{
-			release(&pmm_mutex);
 			return NULL;
 		}
 	}
 
-	release(&pmm_mutex);
 	return page;
 }
 
 uintptr_t pmm_find_in_range(uintptr_t start, uintptr_t end)
 {
-	acquire(&pmm_mutex);
-
 	uintptr_t page = start;
 
 	while(pmm_get_page(page) == true)
@@ -183,21 +185,30 @@ uintptr_t pmm_find_in_range(uintptr_t start, uintptr_t end)
 
 		if(page >= end || page >= highest_usable_address - 4096)
 		{
-			release(&pmm_mutex);
 			return NULL;
 		}
 	}
 
-	release(&pmm_mutex);
 	return page;
 }
 
 uintptr_t pmm_alloc_page()
 {
+	acquire(&pmm_mutex);
+
 	uintptr_t page = pmm_find_page();
 	if(!page)
 		return NULL;
 
 	pmm_mark_page_used(page);
+
+	release(&pmm_mutex);
 	return page;
+}
+
+void pmm_free_page(uintptr_t page)
+{
+	acquire(&pmm_mutex);
+	pmm_mark_page_free(page);
+	release(&pmm_mutex);
 }

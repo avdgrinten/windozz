@@ -11,6 +11,7 @@
 #include <debug.h>
 #include <screen.h>
 #include <mm.h>
+#include <string.h>
 
 #define MODULE "kmain"
 
@@ -23,9 +24,18 @@ void kmain(boot_info_t *boot_info_tmp)
 	screen_init();
 	mm_init();
 
-	/* just for testing */
-	vmm_map_page(0x1000, 0x2000, 0x03);
-	vmm_map_page(0x8000, 0x4000, 0x03);
+	char string[] = "Hello, world!";
+	char *ptr = kmalloc(strlen(string));
+
+	if(!ptr)
+	{
+		ERROR("out of memory.\n");
+	} else
+	{
+		DEBUG("allocated memory at 0x%016lX\n", ptr);
+		strcpy(ptr, string);
+		DEBUG("contents of memory: %s\n", ptr);
+	}
 
 	while(1);
 }

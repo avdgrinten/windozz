@@ -70,6 +70,12 @@ uintptr_t vmm_get_page(uintptr_t virtual)
 
 bool vmm_get_physical(uintptr_t *destination, uintptr_t page)
 {
+	if(page >= PHYSICAL_MEMORY)
+	{
+		*destination = page - PHYSICAL_MEMORY;
+		return true;
+	}
+
 	uintptr_t phys = vmm_get_page(page);
 	if(phys & PAGE_PRESENT)
 	{
@@ -148,4 +154,88 @@ void vmm_map_page(uintptr_t virtual, uintptr_t physical, uintptr_t flags)
 	pt[(virtual >> 12) & 511] = physical | flags;
 
 	flush_tlb(virtual);
+}
+
+void vmm_free(uintptr_t virtual, size_t count)
+{
+	acquire(&vmm_mutex);
+
+	size_t i;
+	uintptr_t phys;
+	for(i = 0; i < count; i++)
+	{
+		if(vmm_get_physical(&phys, virtual + (i << PAGE_SIZE_SHIFT)))
+		{
+			pmm_free_page(phys);
+			vmm_map_page(virtual + (i << PAGE_SIZE_SHIFT), 0, 0);
+		}
+	}
+
+	release(&vmm_mutex);
+}
+
+/* vmm_find: finds contiguous pages but does NOT map them */
+uintptr_t vmm_find(uintptr_t start, size_t count)
+{
+	size_t i;
+	uintptr_t ptr = start, dummy;
+
+start:
+	i = 0;
+
+	while((ptr + (count << PAGE_SIZE_SHIFT) < PHYSICAL_MEMORY))
+	{
+		if(!vmm_get_physical(&dummy, ptr + (i << PAGE_SIZE_SHIFT)))
+		{
+			i++;
+			if(i >= count)
+				return ptr;
+		} else
+		{
+			ptr += PAGE_SIZE;
+			goto start;
+		}
+	}
+
+	return NULL;
+}
+
+uintptr_t vmm_alloc(uintptr_t start, size_t count, uintptr_t flags)
+{
+	if((total_pages - used_pages) <= count)
+	{
+		/* out of memory */
+		return NULL;
+	}
+
+	uintptr_t ptr = vmm_find(start, count);
+	if(!ptr)
+	{
+		return NULL;	/* realistically this will never happen tbh */
+	}
+
+	/*DEBUG("attempt to allocate %d pages at linear addr 0x%016lX, flags 0x%02lX\n", count, ptr, flags);*/
+
+	acquire(&vmm_mutex);
+
+	/* now find physical pages */
+	size_t i;
+	uintptr_t phys;
+
+	for(i = 0; i < count; i++)
+	{
+		phys = pmm_alloc_page();
+		if(!phys)
+		{
+			release(&vmm_mutex);
+			return NULL;
+		}
+
+		/*DEBUG("%016lX : %016lX \n", ptr + (i << PAGE_SIZE_SHIFT), phys);*/
+
+		vmm_map_page(ptr + (i << PAGE_SIZE_SHIFT), phys, flags);
+	}
+
+	release(&vmm_mutex);
+	return ptr;	
 }
