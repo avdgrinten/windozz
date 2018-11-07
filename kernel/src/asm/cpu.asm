@@ -170,3 +170,17 @@ global flush_tlb
 flush_tlb:
 	invlpg [rdi]
 	ret
+
+; void load_gdt(gdtr_t *)
+align 8
+global load_gdt
+load_gdt:
+	lgdt [rdi]
+	ret
+
+; void load_idt(idtr_t *)
+align 8
+global load_idt
+load_idt:
+	lidt [rdi]
+	ret

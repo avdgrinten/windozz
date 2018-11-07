@@ -6,14 +6,14 @@
 * the source package.
 */
 
+#define MODULE "kmain"
+
 #include <bootmgr.h>
 #include <string.h>
 #include <debug.h>
 #include <screen.h>
 #include <mm.h>
-#include <string.h>
-
-#define MODULE "kmain"
+#include <cpu.h>
 
 boot_info_t boot_info;
 
@@ -23,19 +23,6 @@ void kmain(boot_info_t *boot_info_tmp)
 	debug_init();
 	screen_init();
 	mm_init();
-
-	char string[] = "Hello, world!";
-	char *ptr = kmalloc(strlen(string));
-
-	if(!ptr)
-	{
-		ERROR("out of memory.\n");
-	} else
-	{
-		DEBUG("allocated memory at 0x%016lX\n", ptr);
-		strcpy(ptr, string);
-		DEBUG("contents of memory: %s\n", ptr);
-	}
 
 	while(1);
 }
