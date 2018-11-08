@@ -25,7 +25,7 @@ uint8_t *pmm_bitmap = &end;
 size_t pmm_bitmap_size = 0;
 size_t total_pages = 0, used_pages = 0;
 
-uintptr_t highest_usable_address;
+uintptr_t highest_usable_address = 0;
 
 const char *e820_types[] = 
 {
@@ -44,6 +44,14 @@ void pmm_init()
 	DEBUG(" STARTING ADDRESS - ENDING ADDRESS   - TYPE\n");
 
 	e820_t *e820 = (e820_t *)boot_info.e820_map;
+	e820_t *e820_last = (e820_t *)((uintptr_t)boot_info.e820_map + (boot_info.e820_map_entries - 1) * 32);
+	uint64_t last_address = e820_last->base + e820_last->length;
+
+	pmm_bitmap_size = (last_address + PAGE_SIZE - 1) / PAGE_SIZE;
+	pmm_bitmap_size += 7;
+	pmm_bitmap_size /= 8;
+	memset(pmm_bitmap, 0xFF, pmm_bitmap_size);
+
 	uint64_t i;
 
 	for(i = 0; i < boot_info.e820_map_entries; i++)
@@ -61,6 +69,7 @@ void pmm_init()
 	DEBUG("highest usable address is 0x%016lX\n", highest_usable_address);
 	DEBUG("%ld physical pages, of which %ld are unusable.\n", total_pages, used_pages);
 	DEBUG("total memory is %ld MB, of which %ld MB are usable.\n", (total_pages * 4096) / 1024 / 1024, ((total_pages - used_pages) * 4096) / 1024 / 1024);
+	DEBUG("physical memory bitmap size: %d\n", pmm_bitmap_size);
 
 	if(((total_pages * 4096) / 1024 / 1024) < 16)
 	{
@@ -99,10 +108,13 @@ static void e820_add_entry(e820_t *e820)
 			highest_usable_address = e820->base + e820->length - 1;
 	}
 
-	memset(pmm_bitmap + pmm_bitmap_size, 0xFF, (pages + 7) / 8);
+	/*memset(pmm_bitmap + pmm_bitmap_size, 0xFF, (pages + 7) / 8);*/
 
 	total_pages += pages;
-	pmm_bitmap_size += ((pages + 7) / 8);
+	if(e820->type != 1)
+	{
+		used_pages += pages;
+	}
 
 	size_t i;
 	for(i = 0; i < pages; i++)
@@ -149,6 +161,9 @@ void pmm_mark_page_used(uintptr_t addr)
 
 bool pmm_get_page(uintptr_t addr)
 {
+	if(addr >= highest_usable_address)
+		return true;
+
 	size_t byte = (addr / 4096) / 8;
 	size_t bit = (addr / 4096) % 8;
 
