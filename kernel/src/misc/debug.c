@@ -16,6 +16,7 @@
 #include <mutex.h>
 #include <stddef.h>
 #include <screen.h>
+#include <bootmgr.h>
 
 mutex_t com1_mutex = MUTEX_FREE;
 
@@ -65,23 +66,26 @@ size_t copy_number(char *destination, const char *source)
 void debug_init()
 {
 #ifdef COM1_DEBUG
-	uint16_t *base = (uint16_t *)0x400;
-	com1_base = *base;
+	if(!boot_info.uefi)
+	{
+		uint16_t *base = (uint16_t *)0x400;
+		com1_base = *base;
 
-	outb(com1_base + 1, 0x00);
-	iowait();
-	outb(com1_base + 3, 0x80);
-	iowait();
-	outb(com1_base + 0, 0x03);
-	iowait();
-	outb(com1_base + 1, 0x00);
-	iowait();
-	outb(com1_base + 3, 0x03);
-	iowait();
-	outb(com1_base + 2, 0xC7);
-	iowait();
-	outb(com1_base + 4, 0x0B);
-	iowait();
+		outb(com1_base + 1, 0x00);
+		iowait();
+		outb(com1_base + 3, 0x80);
+		iowait();
+		outb(com1_base + 0, 0x03);
+		iowait();
+		outb(com1_base + 1, 0x00);
+		iowait();
+		outb(com1_base + 3, 0x03);
+		iowait();
+		outb(com1_base + 2, 0xC7);
+		iowait();
+		outb(com1_base + 4, 0x0B);
+		iowait();
+	}
 #endif
 
 	debug_printf(LEVEL_DEBUG, NULL, VERSION);
