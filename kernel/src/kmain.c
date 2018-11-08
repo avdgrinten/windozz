@@ -14,6 +14,7 @@
 #include <screen.h>
 #include <mm.h>
 #include <cpu.h>
+#include <cat.h>
 
 boot_info_t boot_info;
 
@@ -23,6 +24,7 @@ void kmain(boot_info_t *boot_info_tmp)
 	debug_init();
 	screen_init();
 	mm_init();
+	cat_init((cat_rsdp_t *)boot_info.acpi_rsdp);
 
 	while(1);
 }
