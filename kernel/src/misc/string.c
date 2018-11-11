@@ -33,12 +33,6 @@ void *memmove(void *destination, const void *source, size_t num)
 	return destination;
 }
 
-void *memcpy(void *destination, const void *source, size_t num)
-{
-	/* for now only */
-	return memmove(destination, source, num);
-}
-
 char *strcpy(char *destination, const char *source)
 {
 	return memmove(destination, source, strlen(source) + 1);
