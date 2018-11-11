@@ -28,7 +28,8 @@ uint32_t ansi_colors[] =
 	rgb(57,181,74),		/* 2- green */
 	rgb(255,199,6),		/* 3- yellow */
 	rgb(0,111,184),		/* 4- blue */
-	rgb(118,38,113),	/* 5- magenta */
+	/*rgb(118,38,113),*/	/* 5- magenta */
+	rgb(203,2,69),		/* 5- magenta */
 	rgb(44,181,233),	/* 6- cyan */
 	rgb(204,204,204),	/* 7- white */
 };
