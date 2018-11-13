@@ -13,6 +13,7 @@ typedef unsigned int cat_status_t;
 #define CAT_SUCCESS             0
 #define CAT_INTEGRITY           1
 #define CAT_MEMORY              2
+#define CAT_NO_TABLE            3
 
 /* OS-specific functions */
 uintptr_t cat_map_memory(uintptr_t, size_t);
@@ -42,4 +43,8 @@ typedef struct cat_instance_t
     cat_dsdt_t *dsdt;
 } cat_instance_t;
 
+cat_instance_t cat_instance;
+
+/* Public functions the OS is meant to use */
 cat_status_t cat_init(cat_rsdp_t *);
+cat_status_t cat_find_table(void **, const char *, size_t);
