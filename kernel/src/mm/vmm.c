@@ -18,15 +18,24 @@
 #include <string.h>
 
 mutex_t vmm_mutex = MUTEX_FREE;
+mmio_t *mmio_regions;
 
 void vmm_init()
 {
-	/* honestly nothing to do here except this one thing */
 	uintptr_t *bsp_pml4 = (uintptr_t *)((uintptr_t)read_cr3() + PHYSICAL_MEMORY);
 	DEBUG("BSP PML4 starts at 0x%016lX\n", bsp_pml4);
 
 	bsp_pml4[0] = 0;		/* unmap the lowest 512 GB */
 	write_cr3(read_cr3());
+
+	mmio_regions = kcalloc(sizeof(mmio_t), MAX_MMIO);
+	if(!mmio_regions)
+	{
+		ERROR("unable to allocate memory.\n");
+		while(1);
+	}
+
+	mmio_region_count = 0;
 }
 
 uintptr_t vmm_get_page(uintptr_t virtual)
@@ -71,7 +80,7 @@ uintptr_t vmm_get_page(uintptr_t virtual)
 
 bool vmm_get_physical(uintptr_t *destination, uintptr_t page)
 {
-	if(page >= PHYSICAL_MEMORY)
+	if(page >= PHYSICAL_MEMORY && page < MMIO_REGION)
 	{
 		*destination = page - PHYSICAL_MEMORY;
 		return true;
@@ -187,7 +196,7 @@ uintptr_t vmm_find(uintptr_t start, size_t count)
 start:
 	i = 0;
 
-	while((ptr + (count << PAGE_SIZE_SHIFT) < PHYSICAL_MEMORY))
+	while((ptr + (count << PAGE_SIZE_SHIFT) < PHYSICAL_MEMORY) || ptr >= MMIO_REGION)
 	{
 		if(!vmm_get_physical(&dummy, ptr + (i << PAGE_SIZE_SHIFT)))
 		{
@@ -242,4 +251,28 @@ uintptr_t vmm_alloc(uintptr_t start, size_t count, uintptr_t flags)
 
 	release(&vmm_mutex);
 	return ptr;	
+}
+
+uintptr_t vmm_create_mmio(uintptr_t physical, size_t pages, char *name)
+{
+	acquire(&vmm_mutex);
+
+	uintptr_t virtual = vmm_find(MMIO_REGION, pages);
+	if(!virtual)
+	{
+		ERROR("unable to map MMIO.\n");
+		while(1);
+	}
+
+	vmm_map_page(virtual, physical, PAGE_PRESENT | PAGE_WRITE | PAGE_UNCACHEABLE);
+
+	mmio_regions[mmio_region_count].virtual = virtual;
+	mmio_regions[mmio_region_count].physical = physical;
+	mmio_regions[mmio_region_count].pages = pages;
+	strcpy(mmio_regions[mmio_region_count].device, name);
+
+	mmio_region_count++;
+
+	release(&vmm_mutex);
+	return virtual;
 }

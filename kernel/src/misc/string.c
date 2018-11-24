@@ -101,7 +101,7 @@ char *ltoa(long num, char *buffer, int radix)
 
 inline char *itoa(int num, char *buffer, int base)
 {
-	return ltoa((long)num, buffer, base);
+	return ltoa((long)num & 0xFFFFFFFF, buffer, base);
 }
 
 int atoi(const char *str)
