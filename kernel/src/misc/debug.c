@@ -95,6 +95,16 @@ void debug_putc(char val)
 {
 	if(com1_base)
 	{
+		if(val == 10)
+		{
+			while(!(inb(com1_base + 5) & 0x20))
+			{
+				iowait();
+			}
+
+			outb(com1_base, 13);
+		}
+
 		while(!(inb(com1_base + 5) & 0x20))
 		{
 			iowait();
@@ -157,7 +167,7 @@ int debug_printf(int level, const char *module, const char *fmt, ...)
 	ltoa((long)timer_ticks % TIMER_FREQUENCY, integer_buffer, DECIMAL);
 	pad(padded_buffer, integer_buffer, 3, '0');
 	debug_puts(padded_buffer);
-	debug_puts("] \e[0m");
+	debug_puts("]\e[0m ");
 
 	if(module)
 	{

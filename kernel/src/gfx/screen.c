@@ -64,7 +64,7 @@ void screen_init()
 
 		DEBUG("using VESA framebuffer for output\n");
 		DEBUG("resolution is %dx%dx32bpp, %d bytes per line\n", screens[0].width, screens[0].height, screens[0].pitch);
-		DEBUG("framebuffer is at 0x%08lX\n", mode_info->framebuffer);
+		DEBUG("framebuffer is at 0x%08X\n", mode_info->framebuffer);
 		DEBUG("card name: %s, total %d MB of VRAM\n", screens[0].adapter_product, (bios_info->vram_size * 65536) / 1024 / 1024);
 	} else
 	{
