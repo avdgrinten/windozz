@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <mm.h>
 #include <cat.h>
+#include <cpu.h>
 
 acpi_madt_t *madt;
 size_t cpu_count, ioapic_count, override_count;
@@ -47,6 +48,12 @@ void apic_init()
 
     lapic_physical = madt->local_apic;
     lapic = (void *)vmm_create_mmio(lapic_physical, 1, "lapic");
+
+    uint64_t apic_base = read_msr(IA32_APIC_BASE);
+    apic_base |= IA32_APIC_BASE_ENABLED;
+    apic_base &= 0xFFF;
+    apic_base |= lapic_physical;
+    write_msr(IA32_APIC_BASE, apic_base);
 
     DEBUG("MADT local APIC is at 0x%08X\n", madt->local_apic);
     DEBUG("MADT flags = 0x%08X\n", madt->flags);

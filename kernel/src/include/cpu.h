@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 
+#define IA32_APIC_BASE                  0x1B
+
+#define IA32_APIC_BASE_BSP              (1 << 8)
+#define IA32_APIC_BASE_ENABLED          (1 << 11)
+
 typedef struct gdt_t
 {
     uint16_t limit_low;
