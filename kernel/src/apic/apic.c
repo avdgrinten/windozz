@@ -18,18 +18,22 @@ acpi_madt_t *madt;
 size_t cpu_count, ioapic_count, override_count;
 size_t cpu_slot_count;
 uintptr_t lapic_physical;
+void *lapic;
 cpu_t *cpus;
 ioapic_t *ioapics;
+override_t *overrides;
 
 static void create_cpu(madt_cpu_t *);
 static void create_ioapic(madt_ioapic_t *);
+static void create_override(madt_override_t *);
 
 void apic_init()
 {
     cpu_count = cpu_slot_count = ioapic_count = override_count = 0;
     cpus = kcalloc(sizeof(cpu_t), MAX_CPUS);
     ioapics = kcalloc(sizeof(ioapic_t), MAX_IOAPICS);
-    if(!cpus || !ioapics)
+    overrides = kcalloc(sizeof(override_t), MAX_OVERRIDES);
+    if(!cpus || !ioapics || !overrides)
     {
         ERROR("unable to allocate memory.\n");
         while(1);
@@ -37,11 +41,12 @@ void apic_init()
 
     if(cat_find_table((void *)&madt, "APIC", 0) != CAT_SUCCESS)
     {
-        WARN("unable to load ACPI MADT, falling back to XT PIC and BSP.\n");
+        ERROR("ACPI MADT table not present.\n");
         while(1);
     }
 
     lapic_physical = madt->local_apic;
+    lapic = (void *)vmm_create_mmio(lapic_physical, 1, "lapic");
 
     DEBUG("MADT local APIC is at 0x%08X\n", madt->local_apic);
     DEBUG("MADT flags = 0x%08X\n", madt->flags);
@@ -62,7 +67,12 @@ void apic_init()
             break;
 
         case MADT_IOAPIC:
-            create_ioapic((madt_ioapic_t *)madt_data);;
+            create_ioapic((madt_ioapic_t *)madt_data);
+            madt_data += madt_data[1];
+            break;
+
+        case MADT_OVERRIDE:
+            create_override((madt_override_t *)madt_data);
             madt_data += madt_data[1];
             break;
 
@@ -72,6 +82,21 @@ void apic_init()
             break;
         }
     }
+
+    if(!ioapic_count)
+    {
+        ERROR("IOAPIC is not present.\n");
+        while(1);
+    }
+
+    if(!cpu_count)
+    {
+        ERROR("MADT doesn't contain any CPU declarations.\n");
+        while(1);
+    }
+
+    DEBUG("%d total CPU slot(s), out of which %d %s occupied.\n", cpu_slot_count, cpu_count, cpu_count == 1 ? "is" : "are");
+    smp_boot();
 }
 
 static void create_cpu(madt_cpu_t *cpu)
@@ -100,4 +125,15 @@ static void create_ioapic(madt_ioapic_t *ioapic)
     DEBUG("IOAPIC ID 0x%02X MMIO at 0x%08X IRQs %d -> %d\n", ioapics[ioapic_count].apic_id, ioapics[ioapic_count].mmio_phys, ioapics[ioapic_count].gsi_start, ioapics[ioapic_count].gsi_end);
 
     ioapic_count++;
+}
+
+static void create_override(madt_override_t *override)
+{
+    overrides[override_count].source = override->irq;
+    overrides[override_count].destination = override->gsi;
+    overrides[override_count].flags = override->flags;
+
+    DEBUG("override for IRQ %d -> %d flags 0x%04X (%s %s)\n", override->irq, override->gsi, override->flags, override->flags & MADT_LEVEL ? "level" : "edge", override->flags & MADT_ACTIVE_LOW ? "low" : "high");
+
+    override_count++;
 }

@@ -14,12 +14,16 @@
 /* this limitation exists because the APIC ID field is 8 bits wide */
 #define MAX_CPUS        256
 #define MAX_IOAPICS     16
+#define MAX_OVERRIDES   16
 
 #define MADT_CPU        0
 #define MADT_IOAPIC     1
 #define MADT_OVERRIDE   2
 #define MADT_NMI        4
 #define MADT_LAPIC      5
+
+#define MADT_ACTIVE_LOW 0x0002
+#define MADT_LEVEL      0x0008
 
 typedef struct cpu_t
 {
@@ -36,6 +40,12 @@ typedef struct ioapic_t
     uintptr_t mmio_phys;
     void *mmio;
 } ioapic_t;
+
+typedef struct override_t
+{
+    uint8_t source, destination;
+    uint16_t flags;
+} override_t;
 
 typedef struct acpi_madt_t
 {
@@ -94,8 +104,17 @@ typedef struct madt_lapic_t
 
 cpu_t *cpus;
 ioapic_t *ioapics;
+size_t cpu_count, ioapic_count, override_count;
+size_t cpu_slot_count;
+uintptr_t lapic_physical;
+void *lapic;
 
 void apic_init();
+void smp_boot();
+
+/* lapic stuff */
+uint32_t lapic_read(size_t);
+void lapic_write(size_t, uint32_t);
 
 /* ioapic stuff */
 #define IOAPIC_ID               0
