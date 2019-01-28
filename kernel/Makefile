@@ -5,7 +5,7 @@
 # the source package.
 
 CC = clang -target x86_64-elf-none
-CFLAGS = -Wall -m64 -mcmodel=large -mno-red-zone -O2 -ffreestanding -fomit-frame-pointer -nodefaultlibs -fno-builtin -nostdlib -nostdinc -I./src/include -I./src/cat/src -mno-sse -mno-sse2 -DCOM1_DEBUG
+CFLAGS = -Wall -m64 -mcmodel=large -mno-red-zone -O2 -ffreestanding -fomit-frame-pointer -nodefaultlibs -fno-builtin -nostdlib -nostdinc -I./src/include -mno-sse -mno-sse2 -DCOM1_DEBUG
 LD = ld
 LFLAGS = -O2 -nostdlib -nostartfiles -nodefaultlibs
 

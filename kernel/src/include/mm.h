@@ -10,6 +10,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define MAP_MEMORY(x, y)       ((uintptr_t)x + PHYSICAL_MEMORY)
+#define GET_PHYS(x)         ((uintptr_t)x - PHYSICAL_MEMORY)
+
 #define PHYSICAL_MEMORY		0xFFFF800000000000  /* pml[256] */
 #define MMIO_REGION         0xFFFF808000000000  /* pml[257] */
 #define KERNEL_HEAP         0xFFFF810000000000  /* pml[258] */

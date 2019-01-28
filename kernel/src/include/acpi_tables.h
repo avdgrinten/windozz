@@ -1,12 +1,15 @@
 /*
- * cat - cool ACPI thing
- * Copyright (C) 2018 by Omar Muhamed.
- */
+* acpi_tables.h
+* Copyright (C) 2018 by the Windozz authors (AUTHORS.md). All rights reserved.
+* Use of this source code is governed by a license that can be
+* found in the LICENSE.md file, in the root directory of
+* the source package.
+*/
 
 #pragma once
 
 /* ACPI Root Pointer */
-typedef struct cat_rsdp_t
+typedef struct acpi_rsdp_t
 {
     /* ACPI 1.0 */
     char signature[8];
@@ -20,10 +23,10 @@ typedef struct cat_rsdp_t
     uint64_t xsdt;
     uint8_t extended_checksum;
     uint8_t reserved[3];
-}__attribute__((packed)) cat_rsdp_t;
+}__attribute__((packed)) acpi_rsdp_t;
 
 /* Header that precedes all ACPI tables */
-typedef struct cat_header_t
+typedef struct acpi_header_t
 {
     char signature[4];
     uint32_t length;
@@ -34,35 +37,35 @@ typedef struct cat_header_t
     uint32_t oem_revision;
     char creator_id[4];
     uint32_t creator_revision;
-}__attribute__((packed)) cat_header_t;
+}__attribute__((packed)) acpi_header_t;
 
 /* RSDT -- 32-bit root table */
-typedef struct cat_rsdt_t
+typedef struct acpi_rsdt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint32_t tables[];
-}__attribute__((packed)) cat_rsdt_t;
+}__attribute__((packed)) acpi_rsdt_t;
 
 /* XSDT -- 64-bit root table */
-typedef struct cat_xsdt_t
+typedef struct acpi_xsdt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint64_t tables[];
-}__attribute__((packed)) cat_xsdt_t;
+}__attribute__((packed)) acpi_xsdt_t;
 
 /* Generic Address Structure used by the FADT, also used by HPET but thats irrelevant */
-typedef struct cat_address_t
+typedef struct acpi_address_t
 {
     uint8_t address_space;
     uint8_t bit_width;
     uint8_t bit_offset;
     uint8_t access_size;
     uint64_t address;
-}__attribute__((packed)) cat_address_t;
+}__attribute__((packed)) acpi_address_t;
 
-typedef struct cat_fadt_t
+typedef struct acpi_fadt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint32_t firmware_control;
     uint32_t dsdt;      /* legacy pointer, use 64-bit pointer when possible */
 
@@ -110,7 +113,7 @@ typedef struct cat_fadt_t
     uint32_t flags;
 
     /* ACPI reset command */
-    cat_address_t reset_register;
+    acpi_address_t reset_register;
     uint8_t reset_command;
     uint8_t reserved3[3];
 
@@ -119,24 +122,24 @@ typedef struct cat_fadt_t
     uint64_t x_dsdt;
 
     /* if ACPI 2.0+, use the following fields instead of the ones above */
-    cat_address_t x_pm1a_event_block;
-    cat_address_t x_pm1b_event_block;
-    cat_address_t x_pm1a_control_block;
-    cat_address_t x_pm1b_control_block;
-    cat_address_t x_pm2_control_block;
-    cat_address_t x_pm_timer_block;
-    cat_address_t x_gpe0_block;
-    cat_address_t x_gpe1_block;
-}__attribute__((packed)) cat_fadt_t;
+    acpi_address_t x_pm1a_event_block;
+    acpi_address_t x_pm1b_event_block;
+    acpi_address_t x_pm1a_control_block;
+    acpi_address_t x_pm1b_control_block;
+    acpi_address_t x_pm2_control_block;
+    acpi_address_t x_pm_timer_block;
+    acpi_address_t x_gpe0_block;
+    acpi_address_t x_gpe1_block;
+}__attribute__((packed)) acpi_fadt_t;
 
-typedef struct cat_dsdt_t
+typedef struct acpi_dsdt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint8_t aml[];
-}__attribute__((packed)) cat_dsdt_t;
+}__attribute__((packed)) acpi_dsdt_t;
 
-typedef struct cat_ssdt_t
+typedef struct acpi_ssdt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint8_t aml[];
-}__attribute__((packed)) cat_ssdt_t;
+}__attribute__((packed)) acpi_ssdt_t;

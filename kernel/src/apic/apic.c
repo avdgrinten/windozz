@@ -12,7 +12,7 @@
 #include <apic.h>
 #include <stdint.h>
 #include <mm.h>
-#include <cat.h>
+#include <acpi.h>
 #include <cpu.h>
 
 acpi_madt_t *madt;
@@ -40,7 +40,7 @@ void apic_init()
         while(1);
     }
 
-    if(cat_find_table((void *)&madt, "APIC", 0) != CAT_SUCCESS)
+    if(acpi_find_table((void *)&madt, "APIC", 0) != ACPI_SUCCESS)
     {
         ERROR("ACPI MADT table not present.\n");
         while(1);

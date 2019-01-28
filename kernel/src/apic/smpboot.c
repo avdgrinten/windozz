@@ -9,6 +9,7 @@
 #define MODULE "smpboot"
 
 #include <apic.h>
+#include <debug.h>
 
 static size_t current_cpu;
 static void smp_boot_ap(size_t);

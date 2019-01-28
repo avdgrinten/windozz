@@ -14,8 +14,9 @@
 #include <screen.h>
 #include <mm.h>
 #include <cpu.h>
-#include <cat.h>
+#include <acpi.h>
 #include <apic.h>
+#include <stddef.h>
 
 boot_info_t boot_info;
 
@@ -25,7 +26,7 @@ void kmain(boot_info_t *boot_info_tmp)
 	debug_init();
 	screen_init();
 	mm_init();
-	cat_init((cat_rsdp_t *)boot_info.acpi_rsdp);
+	acpi_init((acpi_rsdp_t *)boot_info.acpi_rsdp);
 	apic_init();
 
 	DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);

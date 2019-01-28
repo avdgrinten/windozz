@@ -18,6 +18,7 @@
 size_t strlen(const char *);
 void *memmove(void *, const void *, size_t);
 void *memcpy(void *, const void *, size_t);
+int memcmp(const void *, const void *, size_t);
 char *strcpy(char *, const char *);
 char *itoa(int, char *, int);
 char *ltoa(long, char *, int);

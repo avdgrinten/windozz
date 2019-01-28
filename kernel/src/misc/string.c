@@ -33,6 +33,21 @@ void *memmove(void *destination, const void *source, size_t num)
 	return destination;
 }
 
+int memcmp(const void *m1, const void *m2, size_t num)
+{
+	const char *s1 = m1;
+	const char *s2 = m2;
+
+	size_t i;
+	for(i = 0; i < num; i++)
+	{
+		if(s1[i] != s2[i])
+			return s1[i] - s2[i];
+	}
+
+	return 0;
+}
+
 char *strcpy(char *destination, const char *source)
 {
 	return memmove(destination, source, strlen(source) + 1);

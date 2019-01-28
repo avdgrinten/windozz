@@ -9,7 +9,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <cat.h>
+#include <acpi.h>
 
 /* this limitation exists because the APIC ID field is 8 bits wide */
 #define MAX_CPUS        256
@@ -49,7 +49,7 @@ typedef struct override_t
 
 typedef struct acpi_madt_t
 {
-    cat_header_t header;
+    acpi_header_t header;
     uint32_t local_apic;
     uint32_t flags;
 
