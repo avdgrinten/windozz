@@ -1,11 +1,23 @@
-# Windozz
+# The Windozz Project
+[![forthebadge](https://forthebadge.com/images/badges/made-with-c.svg)](https://forthebadge.com)
 
-Totally not a Windows ripoff. Someday a fast, modern, usable OS. 
+---
 
-Windozz now is in alpha phase where big changes and design decisions will 
-happen, so it has not a specific version number.
+This is an attempt to create a functional, fast and modern OS. It aims to be usable for the day-to-day PC user, and compatibility with existing systems and programs is not a priority.
 
-This page is a non-comprehensive index of the Windozz's documentation.
+Windozz is free and open-source software and is distributed under the [MIT license](https://github.com/windozz/windozz/blob/master/LICENSE.md). This repository contains the source code and documentation.
 
-+ [Authors](AUTHORS.md)
-+ [License](LICENSE.md)
+## Building Windozz
+
+```
+$ git clone https://github.com/windozz/windozz.git
+$ cd windozz
+$ make
+```
+## Documentation
+
++ [Boot protocol](https://github.com/windozz/windozz/blob/master/docs/bootmgr.md)
+
+## Contact
+
+Contact me at omarx024@gmail.com.
