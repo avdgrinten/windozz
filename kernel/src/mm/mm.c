@@ -42,6 +42,7 @@ void *kmalloc(size_t n)
 	memset(ptr, 0, act_size);
 
 	ptr[0] = pages;		/* store size in pages so we can free it */
+	ptr[1] = n;			/* and size in bytes for realloc */
 
 	release(&heap_mutex);
 	return (void *)((uintptr_t)ptr + 16);
@@ -51,6 +52,21 @@ void *kcalloc(size_t n1, size_t n2)
 {
 	/* no need to do anything because kmalloc() already clears the memory */
 	return kmalloc(n1 * n2);
+}
+
+void *krealloc(void *old, size_t new_size)
+{
+	void *new = kmalloc(new_size);
+	if(!new)
+		return NULL;
+
+	size_t *s_old;
+	s_old = (size_t *)((uintptr_t)old - 16);
+
+	memcpy(new, old, s_old[1]);
+
+	kfree(old);
+	return new;
 }
 
 void kfree(void *ptr)

@@ -53,6 +53,14 @@ char *strcpy(char *destination, const char *source)
 	return memmove(destination, source, strlen(source) + 1);
 }
 
+int strcmp(const char *s1, const char *s2)
+{
+	if(strlen(s1) == strlen(s2))
+		return memcmp(s1, s2, strlen(s1));
+	else
+		return -1;
+}
+
 char *ltoa(long num, char *buffer, int radix)
 {
 	/* IBM says radix can only be the constants DECIMAL, OCTAL or HEX,
