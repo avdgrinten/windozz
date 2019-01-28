@@ -1,8 +1,3 @@
-# Makefile
-# Copyright (C) 2018 by the Windozz authors (AUTHORS.md). All rights reserved.
-# Use of this source code is governed by a license that can be
-# found in the LICENSE.md file, in the root directory of
-# the source package.
 
 CC = clang -target x86_64-elf-none
 CFLAGS = -Wall -m64 -mcmodel=large -mno-red-zone -O2 -ffreestanding -fomit-frame-pointer -nodefaultlibs -fno-builtin -nostdlib -nostdinc -I./src/include -I./src/acpi/lai/src -I./src/acpi/lai/src/windozz -mno-sse -mno-sse2 -DCOM1_DEBUG
