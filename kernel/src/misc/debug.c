@@ -17,10 +17,10 @@
 #include <stddef.h>
 #include <screen.h>
 #include <bootmgr.h>
+#include <stdbool.h>
 
-mutex_t com1_mutex = MUTEX_FREE;
-
-uint16_t com1_base = 0;
+bool e9_precense = false;
+mutex_t e9_mutex = MUTEX_FREE;
 
 char tmp_debug_buffer[32768];
 char *debug_buffer = tmp_debug_buffer;
@@ -65,52 +65,22 @@ size_t copy_number(char *destination, const char *source)
 
 void debug_init()
 {
-#ifdef COM1_DEBUG
-	if(!boot_info.uefi)
-	{
-		uint16_t *base = (uint16_t *)0x400;
-		com1_base = *base;
-
-		outb(com1_base + 1, 0x00);
-		iowait();
-		outb(com1_base + 3, 0x80);
-		iowait();
-		outb(com1_base + 0, 0x03);
-		iowait();
-		outb(com1_base + 1, 0x00);
-		iowait();
-		outb(com1_base + 3, 0x03);
-		iowait();
-		outb(com1_base + 2, 0xC7);
-		iowait();
-		outb(com1_base + 4, 0x0B);
-		iowait();
-	}
-#endif
+	if(inb(0xE9) == 0xE9)
+		e9_precense = true;
 
 	debug_printf(LEVEL_DEBUG, NULL, VERSION);
 }
 
 void debug_putc(char val)
 {
-	if(com1_base)
+	if(e9_precense)
 	{
 		if(val == 10)
 		{
-			while(!(inb(com1_base + 5) & 0x20))
-			{
-				iowait();
-			}
-
-			outb(com1_base, 13);
+			outb(0xE9, 13);
 		}
 
-		while(!(inb(com1_base + 5) & 0x20))
-		{
-			iowait();
-		}
-
-		outb(com1_base, val);
+		outb(0xE9, val);
 	}
 
 	if(display_debug)
@@ -135,7 +105,7 @@ int debug_puts(const char *string)
 
 int debug_printf(int level, const char *module, const char *fmt, ...)
 {
-	acquire(&com1_mutex);
+	acquire(&e9_mutex);
 
 	int size = 0;
 	va_list args;
@@ -307,6 +277,6 @@ int debug_printf(int level, const char *module, const char *fmt, ...)
 
 	va_end(args);
 
-	release(&com1_mutex);
+	release(&e9_mutex);
 	return size;
 }

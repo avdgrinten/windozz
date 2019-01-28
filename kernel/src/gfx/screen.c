@@ -16,6 +16,8 @@
 #include <mm.h>
 #include <string.h>
 
+#define CHAR_WIDTH		9
+
 /* someday allow up to 8 monitors when there is a real graphics driver */
 screen_t screens[8];
 
@@ -53,7 +55,7 @@ void screen_init()
 		screens[0].width = mode_info->width;
 		screens[0].height = mode_info->height;
 		screens[0].pitch = mode_info->pitch;
-		screens[0].x_max = (screens[0].width / 9) - 1;
+		screens[0].x_max = (screens[0].width / CHAR_WIDTH) - 1;
 		screens[0].y_max = (screens[0].height / 16) - 1;
 		screens[0].framebuffer = (uintptr_t)mode_info->framebuffer + PHYSICAL_MEMORY;
 
@@ -145,7 +147,7 @@ static void parse_escape_sequence(screen_t *screen)
 
 void putc(screen_t *screen, char value)
 {
-	uint32_t *pixels = pixel_offset(screen, screen->x * 9, screen->y * 16);
+	uint32_t *pixels = pixel_offset(screen, screen->x * CHAR_WIDTH, screen->y * 16);
 
 	uint8_t font_data;
 
