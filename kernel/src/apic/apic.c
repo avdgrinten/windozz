@@ -101,7 +101,8 @@ void apic_init()
     }
 
     DEBUG("%d total CPU slot(s), out of which %d %s occupied.\n", cpu_slot_count, cpu_count, cpu_count == 1 ? "is" : "are");
-    smp_boot();
+    /*smp_configure_cpu(0);*/
+    ioapic_init();
 }
 
 static void create_cpu(madt_cpu_t *cpu)

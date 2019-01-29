@@ -23,6 +23,10 @@
 #define MADT_ACTIVE_LOW 0x0002
 #define MADT_LEVEL      0x0008
 
+/* interrupt base */
+#define IRQ_BASE            0x30
+#define PIC_BASE            0x20    /* we need this for spurious irqs */
+
 typedef struct cpu_t
 {
     uint8_t apic_id, acpi_id;
@@ -119,5 +123,10 @@ void lapic_write(size_t, uint32_t);
 #define IOAPIC_VERSION          1
 #define IOAPIC_TABLES           16
 
-uint32_t ioapic_read(size_t, size_t);
-void ioapic_write(size_t, size_t, uint32_t);
+#define IOAPIC_ACTIVE_LOW       (1 << 13)
+#define IOAPIC_LEVEL            (1 << 15)
+#define IOAPIC_MASK             (1 << 16)
+
+uint32_t ioapic_read(size_t, uint32_t);
+void ioapic_write(size_t, uint32_t, uint32_t);
+void ioapic_init();
