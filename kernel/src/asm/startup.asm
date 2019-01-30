@@ -9,30 +9,30 @@ section .startup
 ; kernel entry from boot loader
 global _start
 _start:
-	cld
+    cld
 
-	; clear the BSS
-	extern bss
-	extern bssend
-	mov rdi, bss
-	mov rcx, bssend
-	sub rcx, rdi
-	xor rax, rax
-	rep stosb
+    ; clear the BSS
+    extern bss
+    extern bssend
+    mov rdi, bss
+    mov rcx, bssend
+    sub rcx, rdi
+    xor rax, rax
+    rep stosb
 
-	mov rsp, stack_top
+    mov rsp, stack_top
 
-	mov rdi, rbp
-	extern kmain
-	call kmain
+    mov rdi, rbp
+    extern kmain
+    call kmain
 
-	; shouldn't be possible to ever reach here
+    ; shouldn't be possible to ever reach here
 .hang:
-	hlt
-	jmp .hang
+    hlt
+    jmp .hang
 
 section .bss
 
 align 16
-stack_bottom:			resb 32768
+stack_bottom:            resb 32768
 stack_top:

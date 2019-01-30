@@ -9,9 +9,9 @@
 #include <stdint.h>
 
 /* for ltoa() */
-#define OCTAL		8
+#define OCTAL       8
 #define DECIMAL     10
-#define HEX			16
+#define HEX         16
 
 size_t strlen(const char *);
 void *memmove(void *, const void *, size_t);

@@ -7,4 +7,4 @@ section .rodata
 ; Kernel Boot Log Font
 global font
 font:
-	incbin "src/font/vgafont.bin"
+    incbin "src/font/vgafont.bin"

@@ -10,8 +10,8 @@
 
 typedef uint64_t mutex_t;
 
-#define MUTEX_BUSY			0x01
-#define MUTEX_FREE			0x00
+#define MUTEX_BUSY            0x01
+#define MUTEX_FREE            0x00
 
 void acquire(mutex_t *);
 void release(mutex_t *);

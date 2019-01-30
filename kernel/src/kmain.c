@@ -21,14 +21,14 @@ boot_info_t boot_info;
 
 void kmain(boot_info_t *boot_info_tmp)
 {
-	memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
-	debug_init();
-	screen_init();
-	mm_init();
-	acpi_init((rsdp_t *)boot_info.acpi_rsdp);
-	apic_init();
-	
+    memcpy(&boot_info, boot_info_tmp, sizeof(boot_info_t));
+    debug_init();
+    screen_init();
+    mm_init();
+    acpi_init((rsdp_t *)boot_info.acpi_rsdp);
+    apic_init();
+    
 
-	DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
-	while(1);
+    DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
+    while(1);
 }

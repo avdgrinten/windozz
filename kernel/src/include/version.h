@@ -6,4 +6,4 @@
 
 #pragma once
 
-#define VERSION			"Windozz 0.1 pre-alpha built on " __DATE__ "\n"
+#define VERSION            "Windozz 0.1 pre-alpha built on " __DATE__ "\n"
