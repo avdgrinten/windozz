@@ -14,7 +14,7 @@
 
 acpi_status_t acpi_find_table(void **table, const char *signature, size_t index)
 {
-    acpi_header_t *header;
+    acpi_sdth_t *header;
     size_t i;
     size_t current_index = 0;
     size_t table_count;
@@ -24,10 +24,10 @@ acpi_status_t acpi_find_table(void **table, const char *signature, size_t index)
         /*DEBUG("using XSDT to scan for '%s'\n", signature);*/
 
         /* use the XSDT whenever possible */
-        table_count = (acpi_instance.xsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint64_t);
+        table_count = (acpi_instance.xsdt->header.length - sizeof(acpi_sdth_t)) / sizeof(uint64_t);
         for(i = 0; i < table_count; i++)
         {
-            header = (acpi_header_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], sizeof(acpi_header_t));
+            header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], sizeof(acpi_sdth_t));
             if(!header) return ACPI_MEMORY;
 
             if(!memcmp(header->signature, signature, 4))
@@ -35,7 +35,7 @@ acpi_status_t acpi_find_table(void **table, const char *signature, size_t index)
 
             if(current_index > index)
             {
-                header = (acpi_header_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], header->length);
+                header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], header->length);
                 if(!header) return ACPI_MEMORY;
 
                 *table = (void *)header;
@@ -47,10 +47,10 @@ acpi_status_t acpi_find_table(void **table, const char *signature, size_t index)
         /* and of course fall back to RSDT even tho practically no real hw still uses this */
         /*DEBUG("using RSDT to scan for '%s'\n", signature);*/
 
-        table_count = (acpi_instance.rsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
+        table_count = (acpi_instance.rsdt->header.length - sizeof(acpi_sdth_t)) / sizeof(uint32_t);
         for(i = 0; i < table_count; i++)
         {
-            header = (acpi_header_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], sizeof(acpi_header_t));
+            header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], sizeof(acpi_sdth_t));
             if(!header) return ACPI_MEMORY;
 
             if(!memcmp(header->signature, signature, 4))
@@ -58,7 +58,7 @@ acpi_status_t acpi_find_table(void **table, const char *signature, size_t index)
 
             if(current_index > index)
             {
-                header = (acpi_header_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], header->length);
+                header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], header->length);
                 if(!header) return ACPI_MEMORY;
 
                 *table = (void *)header;

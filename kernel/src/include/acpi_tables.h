@@ -7,7 +7,7 @@
 #pragma once
 
 /* ACPI Root Pointer */
-typedef struct acpi_rsdp_t
+typedef struct rsdp_t
 {
     /* ACPI 1.0 */
     char signature[8];
@@ -21,10 +21,10 @@ typedef struct acpi_rsdp_t
     uint64_t xsdt;
     uint8_t extended_checksum;
     uint8_t reserved[3];
-}__attribute__((packed)) acpi_rsdp_t;
+}__attribute__((packed)) rsdp_t;
 
 /* Header that precedes all ACPI tables */
-typedef struct acpi_header_t
+typedef struct acpi_sdth_t
 {
     char signature[4];
     uint32_t length;
@@ -35,21 +35,21 @@ typedef struct acpi_header_t
     uint32_t oem_revision;
     char creator_id[4];
     uint32_t creator_revision;
-}__attribute__((packed)) acpi_header_t;
+}__attribute__((packed)) acpi_sdth_t;
 
 /* RSDT -- 32-bit root table */
-typedef struct acpi_rsdt_t
+typedef struct rsdt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint32_t tables[];
-}__attribute__((packed)) acpi_rsdt_t;
+}__attribute__((packed)) rsdt_t;
 
 /* XSDT -- 64-bit root table */
-typedef struct acpi_xsdt_t
+typedef struct xsdt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint64_t tables[];
-}__attribute__((packed)) acpi_xsdt_t;
+}__attribute__((packed)) xsdt_t;
 
 /* Generic Address Structure used by the FADT, also used by HPET but thats irrelevant */
 typedef struct acpi_address_t
@@ -61,9 +61,9 @@ typedef struct acpi_address_t
     uint64_t address;
 }__attribute__((packed)) acpi_address_t;
 
-typedef struct acpi_fadt_t
+typedef struct fadt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint32_t firmware_control;
     uint32_t dsdt;      /* legacy pointer, use 64-bit pointer when possible */
 
@@ -128,16 +128,16 @@ typedef struct acpi_fadt_t
     acpi_address_t x_pm_timer_block;
     acpi_address_t x_gpe0_block;
     acpi_address_t x_gpe1_block;
-}__attribute__((packed)) acpi_fadt_t;
+}__attribute__((packed)) fadt_t;
 
-typedef struct acpi_dsdt_t
+typedef struct dsdt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint8_t aml[];
-}__attribute__((packed)) acpi_dsdt_t;
+}__attribute__((packed)) dsdt_t;
 
-typedef struct acpi_ssdt_t
+typedef struct ssdt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint8_t aml[];
-}__attribute__((packed)) acpi_ssdt_t;
+}__attribute__((packed)) ssdt_t;

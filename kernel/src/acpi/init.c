@@ -15,9 +15,9 @@
 acpi_instance_t acpi_instance;
 
 static acpi_status_t show_tables();
-static acpi_status_t init_fadt(acpi_fadt_t *);
+static acpi_status_t init_fadt(fadt_t *);
 
-acpi_status_t acpi_init(acpi_rsdp_t *rsdp)
+acpi_status_t acpi_init(rsdp_t *rsdp)
 {
     memset(&acpi_instance, 0, sizeof(acpi_instance_t));
 
@@ -29,7 +29,7 @@ acpi_status_t acpi_init(acpi_rsdp_t *rsdp)
 
     DEBUG("'RSD PTR ' v%02d @ 0x%016lX '%s'\n", rsdp->revision, GET_PHYS((uintptr_t)rsdp), str1);
     acpi_instance.rsdp = rsdp;
-    acpi_instance.rsdt = (acpi_rsdt_t *)MAP_MEMORY(rsdp->rsdt, sizeof(acpi_header_t));
+    acpi_instance.rsdt = (rsdt_t *)MAP_MEMORY(rsdp->rsdt, sizeof(acpi_sdth_t));
     if(!acpi_instance.rsdt)
     {
         ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -42,7 +42,7 @@ acpi_status_t acpi_init(acpi_rsdp_t *rsdp)
     str2[4] = 0;
 
     DEBUG("'RSDT' v%02d @ 0x%016lX %06d (%s %s %08X) \n", acpi_instance.rsdt->header.revision, GET_PHYS((uintptr_t)acpi_instance.rsdt), acpi_instance.rsdt->header.length, str1, str2, acpi_instance.rsdt->header.creator_revision);
-    acpi_instance.rsdt = (acpi_rsdt_t *)MAP_MEMORY(rsdp->rsdt, acpi_instance.rsdt->header.length);
+    acpi_instance.rsdt = (rsdt_t *)MAP_MEMORY(rsdp->rsdt, acpi_instance.rsdt->header.length);
     if(!acpi_instance.rsdt)
     {
         ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -51,7 +51,7 @@ acpi_status_t acpi_init(acpi_rsdp_t *rsdp)
 
     if(rsdp->revision != 0)
     {
-        acpi_instance.xsdt = (acpi_xsdt_t *)MAP_MEMORY(rsdp->xsdt, sizeof(acpi_header_t));
+        acpi_instance.xsdt = (xsdt_t *)MAP_MEMORY(rsdp->xsdt, sizeof(acpi_sdth_t));
         if(!acpi_instance.xsdt)
         {
             ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -64,7 +64,7 @@ acpi_status_t acpi_init(acpi_rsdp_t *rsdp)
         str2[4] = 0;
 
         DEBUG("'XSDT' v%02d @ 0x%016lX %06d (%s %s %08X) \n", acpi_instance.xsdt->header.revision, GET_PHYS((uintptr_t)acpi_instance.xsdt), acpi_instance.xsdt->header.length, str1, str2, acpi_instance.xsdt->header.creator_revision);
-        acpi_instance.xsdt = (acpi_xsdt_t *)MAP_MEMORY(rsdp->xsdt, acpi_instance.xsdt->header.length);
+        acpi_instance.xsdt = (xsdt_t *)MAP_MEMORY(rsdp->xsdt, acpi_instance.xsdt->header.length);
         if(!acpi_instance.xsdt)
         {
             ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -82,7 +82,7 @@ static acpi_status_t show_tables()
     char name[5];
     char oem[7];
     char creator[5];
-    acpi_header_t *header;
+    acpi_sdth_t *header;
 
     memset(name, 0, 5);
     memset(oem, 0, 7);
@@ -90,10 +90,10 @@ static acpi_status_t show_tables()
 
     if(acpi_instance.xsdt)
     {
-        count = (acpi_instance.xsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint64_t);
+        count = (acpi_instance.xsdt->header.length - sizeof(acpi_sdth_t)) / sizeof(uint64_t);
         for(i = 0; i < count; i++)
         {
-            header = (acpi_header_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], sizeof(acpi_header_t));
+            header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.xsdt->tables[i], sizeof(acpi_sdth_t));
             if(!header)
             {
                 ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -107,17 +107,17 @@ static acpi_status_t show_tables()
             DEBUG("'%s' v%02d @ 0x%016lX %06d (%s %s %08X) \n", name, header->revision, GET_PHYS((uintptr_t)header), header->length, oem, creator, header->creator_revision);
             if(!memcmp(header->signature, "FACP", 4))
             {
-                status = init_fadt((acpi_fadt_t *)header);
+                status = init_fadt((fadt_t *)header);
                 if(status != ACPI_SUCCESS)
                     return status;
             }
         }
     } else
     {
-        count = (acpi_instance.rsdt->header.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
+        count = (acpi_instance.rsdt->header.length - sizeof(acpi_sdth_t)) / sizeof(uint32_t);
         for(i = 0; i < count; i++)
         {
-            header = (acpi_header_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], sizeof(acpi_header_t));
+            header = (acpi_sdth_t *)MAP_MEMORY(acpi_instance.rsdt->tables[i], sizeof(acpi_sdth_t));
             if(!header)
             {
                 ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -131,7 +131,7 @@ static acpi_status_t show_tables()
             DEBUG("'%s' v%02d @ 0x%016lX %06d (%s %s %08X) \n", name, header->revision, GET_PHYS((uintptr_t)header), header->length, oem, creator, header->creator_revision);
             if(!memcmp(header->signature, "FACP", 4))
             {
-                status = init_fadt((acpi_fadt_t *)header);
+                status = init_fadt((fadt_t *)header);
                 if(status != ACPI_SUCCESS)
                     return status;
             }
@@ -141,9 +141,9 @@ static acpi_status_t show_tables()
     return ACPI_SUCCESS;
 }
 
-static acpi_status_t init_fadt(acpi_fadt_t *fadt)
+static acpi_status_t init_fadt(fadt_t *fadt)
 {
-    acpi_instance.fadt = (acpi_fadt_t *)MAP_MEMORY(GET_PHYS((uintptr_t)fadt), fadt->header.length);
+    acpi_instance.fadt = (fadt_t *)MAP_MEMORY(GET_PHYS((uintptr_t)fadt), fadt->header.length);
     if(!acpi_instance.fadt)
     {
         ERROR("unable to map memory, ACPI initialization failed.\n");
@@ -162,14 +162,14 @@ static acpi_status_t init_fadt(acpi_fadt_t *fadt)
         dsdt = fadt->dsdt;
     }
 
-    acpi_instance.dsdt = (acpi_dsdt_t *)MAP_MEMORY(dsdt, sizeof(acpi_header_t));
+    acpi_instance.dsdt = (dsdt_t *)MAP_MEMORY(dsdt, sizeof(acpi_sdth_t));
     if(!acpi_instance.dsdt)
     {
         ERROR("unable to map memory, ACPI initialization failed.\n");
         return ACPI_MEMORY;
     }
 
-    acpi_instance.dsdt = (acpi_dsdt_t *)MAP_MEMORY(dsdt, acpi_instance.dsdt->header.length);
+    acpi_instance.dsdt = (dsdt_t *)MAP_MEMORY(dsdt, acpi_instance.dsdt->header.length);
     if(!acpi_instance.dsdt)
     {
         ERROR("unable to map memory, ACPI initialization failed.\n");

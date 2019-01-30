@@ -17,14 +17,14 @@ typedef unsigned int acpi_status_t;
 
 typedef struct acpi_instance_t
 {
-    acpi_rsdp_t *rsdp;
-    acpi_rsdt_t *rsdt;
-    acpi_xsdt_t *xsdt;
-    acpi_fadt_t *fadt;
-    acpi_dsdt_t *dsdt;
+    rsdp_t *rsdp;
+    rsdt_t *rsdt;
+    xsdt_t *xsdt;
+    fadt_t *fadt;
+    dsdt_t *dsdt;
 } acpi_instance_t;
 
 acpi_instance_t acpi_instance;
 
-acpi_status_t acpi_init(acpi_rsdp_t *);
+acpi_status_t acpi_init(rsdp_t *);
 acpi_status_t acpi_find_table(void **, const char *, size_t);

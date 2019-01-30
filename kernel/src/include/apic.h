@@ -51,7 +51,7 @@ typedef struct override_t
 
 typedef struct acpi_madt_t
 {
-    acpi_header_t header;
+    acpi_sdth_t header;
     uint32_t local_apic;
     uint32_t flags;
 
