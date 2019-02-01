@@ -76,6 +76,9 @@ typedef struct idtr_t
     uint64_t base;
 }__attribute__((packed)) idtr_t;
 
+idt_t *idt;
+idtr_t *idtr;
+
 void write_cr0(uint64_t);
 void write_cr3(uint64_t);
 void write_cr4(uint64_t);
@@ -95,5 +98,6 @@ void load_idt(idtr_t *);
 
 void gdt_init();
 void idt_init();
+void idt_install(uint8_t, uintptr_t);
 
 void reload_segments(uint16_t, uint16_t);
