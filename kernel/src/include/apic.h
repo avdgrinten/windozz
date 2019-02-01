@@ -113,6 +113,7 @@ void *lapic;
 
 void apic_init();
 void smp_boot();
+void smp_configure_cpu(size_t);
 
 /* lapic stuff */
 uint32_t lapic_read(size_t);

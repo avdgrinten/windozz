@@ -198,3 +198,33 @@ global load_idt
 load_idt:
     lidt [rdi]
     ret
+
+; void reload_segments(uint16_t, uint16_t)
+align 16
+global reload_segments
+reload_segments:
+    xor rcx, rcx
+    not cx              ; rcx = 0xFFFF
+    and rdi, rcx
+    and rsi, rcx
+
+    mov rax, rsp
+
+    push rsi            ; SS
+    push rax            ; RSP
+    pushfq              ; RFLAGS
+    push rdi            ; CS
+    mov rax, .next
+    push rax            ; RIP
+    iretq
+
+align 16
+
+.next:
+    mov ds, si
+    mov es, si
+    mov fs, si
+    mov gs, si
+
+    ret
+

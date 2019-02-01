@@ -8,6 +8,7 @@
 
 #include <apic.h>
 #include <debug.h>
+#include <cpu.h>
 
 static size_t current_cpu;
 static void smp_boot_ap(size_t);
@@ -33,5 +34,10 @@ void smp_boot()
 static void smp_boot_ap(size_t index)
 {
     DEBUG("booting AP %d with APIC ID 0x%02X...\n", index, cpus[index].apic_id);
+}
+
+void smp_configure_cpu(size_t index)
+{
+    gdt_init();
 }
 

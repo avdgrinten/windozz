@@ -13,6 +13,36 @@
 #define IA32_APIC_BASE_BSP              (1 << 8)
 #define IA32_APIC_BASE_ENABLED          (1 << 11)
 
+#define GDT_ENTRY_NULL                  0
+#define GDT_ENTRY_KCODE                 1
+#define GDT_ENTRY_KDATA                 2
+#define GDT_ENTRY_UCODE                 3
+#define GDT_ENTRY_UDATA                 4
+#define GDT_ENTRY_TSS_LOW               5
+#define GDT_ENTRY_TSS_HIGH              6
+
+#define GDT_ENTRIES                     7
+
+#define KCODE_SEGMENT                   0x08
+#define KDATA_SEGMENT                   0x10
+#define UCODE_SEGMENT                   0x1B
+#define UDATA_SEGMENT                   0x23
+
+#define GDT_ACCESS_PRESENT              (1 << 7)
+#define GDT_ACCESS_USER                 (3 << 5)
+#define GDT_ACCESS_NOT_TSS              (1 << 4)
+#define GDT_ACCESS_EXECUTABLE           (1 << 3)
+#define GDT_ACCESS_RW                   (1 << 1)
+
+#define GDT_FLAGS_GRANULARITY           (1 << 3)
+#define GDT_FLAGS_LONG_MODE             (1 << 1)
+
+#define GDT_KCODE_ACCESS                (GDT_ACCESS_PRESENT | GDT_ACCESS_NOT_TSS | GDT_ACCESS_EXECUTABLE | GDT_ACCESS_RW)
+#define GDT_KDATA_ACCESS                (GDT_ACCESS_PRESENT | GDT_ACCESS_NOT_TSS | GDT_ACCESS_RW)
+
+#define GDT_UCODE_ACCESS                (GDT_KCODE_ACCESS | GDT_ACCESS_USER)
+#define GDT_UDATA_ACCESS                (GDT_KDATA_ACCESS | GDT_ACCESS_USER)
+
 typedef struct gdt_t
 {
     uint16_t limit_low;
@@ -65,3 +95,5 @@ void load_idt(idtr_t *);
 
 void gdt_init();
 void idt_init();
+
+void reload_segments(uint16_t, uint16_t);
