@@ -12,6 +12,7 @@
 #include <mm.h>
 #include <acpi.h>
 #include <cpu.h>
+#include <io.h>
 
 acpi_madt_t *madt;
 size_t cpu_count, ioapic_count, override_count;
@@ -21,6 +22,11 @@ void *lapic;
 cpu_t *cpus;
 ioapic_t *ioapics;
 override_t *overrides;
+
+extern void pic0_spurious_stub();
+extern void pic1_spurious_stub();
+
+size_t pic_spurious = 0;
 
 static void create_cpu(madt_cpu_t *);
 static void create_ioapic(madt_ioapic_t *);
@@ -101,6 +107,40 @@ void apic_init()
     }
 
     DEBUG("%d total CPU slot(s), out of which %d %s occupied.\n", cpu_slot_count, cpu_count, cpu_count == 1 ? "is" : "are");
+
+    if(madt->flags & 1)
+    {
+        /* XT PIC exists, so remap it to vectors 0x20-0x2F so we can handle
+         * its spurious IRQs, and then mask everything. */
+        outb(0x20, 0x11);
+        outb(0xA0, 0x11);
+        iowait();
+
+        outb(0x21, PIC_BASE);
+        outb(0xA1, PIC_BASE+8);
+        iowait();
+
+        outb(0x21, 4);
+        outb(0xA1, 2);
+        iowait();
+
+        outb(0x21, 1);
+        outb(0xA1, 1);
+        iowait();
+
+        asm volatile ("pause");
+
+        outb(0x21, 0xFB);   /* leave cascase IRQ 2 unmasked to handle spurious
+                             * IRQs from the slave PIC too. */
+        outb(0xA1, 0xFF);
+        iowait();
+
+        idt_install(PIC_BASE + 7, (uintptr_t)&pic0_spurious_stub);
+        idt_install(PIC_BASE + 15, (uintptr_t)&pic1_spurious_stub);
+    }
+
+    asm volatile ("sti");
+    lapic_configure();
     ioapic_init();
 }
 
@@ -142,3 +182,20 @@ static void create_override(madt_override_t *override)
 
     override_count++;
 }
+
+/* spurious IRQ handlers for the XT PIC */
+
+void pic0_spurious()
+{
+    pic_spurious++;
+    WARN("spurious IRQ from master PIC, total spurious PIC IRQ count is %d\n", pic_spurious);
+}
+
+void pic1_spurious()
+{
+    pic_spurious++;
+    WARN("spurious IRQ from slave PIC, total spurious PIC IRQ count is %d\n", pic_spurious);
+
+    outb(0x20, 0x20);   /* eoi for master */
+}
+

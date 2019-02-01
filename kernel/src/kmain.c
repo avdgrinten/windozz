@@ -16,6 +16,7 @@
 #include <apic.h>
 #include <stddef.h>
 #include <lai.h>
+#include <timer.h>
 
 boot_info_t boot_info;
 
@@ -29,6 +30,15 @@ void kmain(boot_info_t *boot_info_tmp)
     idt_init();
     acpi_init((rsdp_t *)boot_info.acpi_rsdp);
     apic_init();
+    timer_init();
+
+    while(1)
+    {
+        if((timer_ticks % 284) == 0)
+        {
+            DEBUG("284ms have passed.\n");
+        }
+    }
 
     DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
     while(1);

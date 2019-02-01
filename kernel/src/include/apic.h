@@ -23,6 +23,12 @@
 #define MADT_ACTIVE_LOW 0x0002
 #define MADT_LEVEL      0x0008
 
+#define ACTIVE_LOW      MADT_ACTIVE_LOW
+#define LEVEL           MADT_LEVEL
+
+#define ACTIVE_HIGH     0
+#define EDGE            0
+
 /* interrupt base */
 #define IRQ_BASE            0x30
 #define PIC_BASE            0x20    /* we need this for spurious irqs */
@@ -106,6 +112,7 @@ typedef struct madt_lapic_t
 
 cpu_t *cpus;
 ioapic_t *ioapics;
+override_t *overrides;
 size_t cpu_count, ioapic_count, override_count;
 size_t cpu_slot_count;
 uintptr_t lapic_physical;
@@ -116,8 +123,23 @@ void smp_boot();
 void smp_configure_cpu(size_t);
 
 /* lapic stuff */
+#define LAPIC_TPR               0x80
+#define LAPIC_EOI               0xB0
+#define LAPIC_SPURIOUS          0xF0
+#define LAPIC_COMMAND_LOW       0x300
+#define LAPIC_COMMAND_HIGH      0x310
+
+#define LAPIC_SPURIOUS_ENABLE   (1 << 8)
+
+#define LAPIC_COMMAND_INIT      (5 << 8)
+#define LAPIC_COMMAND_SIPI      (6 << 8)
+#define LAPIC_COMMAND_DELIVERY  (1 << 12)
+#define LAPIC_COMMAND_DEASSERT  (1 << 15)
+#define LAPIC_COMMAND_ASSERT    (1 << 14)
+
 uint32_t lapic_read(size_t);
 void lapic_write(size_t, uint32_t);
+void lapic_configure();
 
 /* ioapic stuff */
 #define IOAPIC_ID               0
@@ -131,3 +153,8 @@ void lapic_write(size_t, uint32_t);
 uint32_t ioapic_read(size_t, uint32_t);
 void ioapic_write(size_t, uint32_t, uint32_t);
 void ioapic_init();
+
+uint8_t irq_configure(uint8_t, uintptr_t, uint8_t);
+void irq_mask(uint8_t);
+void irq_unmask(uint8_t);
+

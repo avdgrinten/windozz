@@ -8,6 +8,7 @@ section .text
 
 ; void handle_exception(int number, uint64_t code, uint64_t rip)
 extern handle_exception
+extern lapic_eoi
 
 global int0_handler
 global int1_handler
@@ -103,7 +104,6 @@ global int31_handler
     iretq
 %endmacro
 
-align 16
 int0_handler:
     exception 0
 
@@ -199,4 +199,47 @@ int30_handler:
 
 int31_handler:
     exception 31
+
+global pic0_spurious_stub
+pic0_spurious_stub:
+    pushaq
+
+    extern pic0_spurious
+    call pic0_spurious
+
+    popaq
+    iretq
+
+global pic1_spurious_stub
+pic1_spurious_stub:
+    pushaq
+
+    extern pic1_spurious
+    call pic1_spurious
+
+    popaq
+    iretq
+
+global lapic_spurious_stub
+lapic_spurious_stub:
+    pushaq
+
+    extern lapic_spurious
+    call lapic_spurious
+
+    popaq
+    iretq
+
+global timer_irq_stub
+timer_irq_stub:
+    cli
+    pushaq
+
+    extern timer_irq
+    call timer_irq
+
+    call lapic_eoi
+
+    popaq
+    iretq
 
