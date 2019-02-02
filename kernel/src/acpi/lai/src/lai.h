@@ -16,7 +16,6 @@
 #define ACPI_GAS_IO            1
 #define ACPI_GAS_PCI            2
 
-#define ACPI_MAX_NAMESPACE_ENTRIES    128    // realloc()'d, to save memory
 #define ACPI_MAX_PACKAGE_ENTRIES    256    // for Package() because the size is 8 bits, VarPackage() is unlimited
 
 #define ACPI_NAMESPACE_NAME        1
@@ -299,9 +298,7 @@ typedef struct acpi_large_irq_t
 
 acpi_fadt_t *acpi_fadt;
 acpi_aml_t *acpi_dsdt;
-acpi_nsnode_t *acpi_namespace;
 extern char acpins_path[];
-size_t acpi_namespace_entries;
 
 // OS-specific functions
 void *acpi_scan(char *, size_t);
@@ -329,7 +326,6 @@ void acpi_sleep(uint64_t);
 
 // The remaining of these functions are OS independent!
 // ACPI namespace functions
-void acpins_increment_namespace();
 size_t acpins_resolve_path(char *, uint8_t *);
 void acpi_create_namespace(void *);
 int acpi_is_name(char);

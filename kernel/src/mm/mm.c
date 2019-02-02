@@ -58,12 +58,15 @@ void *krealloc(void *old, size_t new_size)
     if(!new)
         return NULL;
 
-    size_t *s_old;
-    s_old = (size_t *)((uintptr_t)old - 16);
+    if(old)
+    {
+        size_t *s_old;
+        s_old = (size_t *)((uintptr_t)old - 16);
 
-    memcpy(new, old, s_old[1]);
+        memcpy(new, old, s_old[1]);
 
-    kfree(old);
+        kfree(old);
+    }
     return new;
 }
 
