@@ -1,0 +1,8 @@
+# Generic object files and binaries.
+*.o
+*.bin
+*.hdd
+
+# Specific files.
+echfs-utils/echfs-utils
+kernel/winkern
