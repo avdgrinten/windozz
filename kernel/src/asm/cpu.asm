@@ -80,7 +80,7 @@ align 16
 global inw
 inw:
     mov rdx, rdi
-    in al, dx
+    in ax, dx
     ret
 
 ; uint32_t ind(uint32_t)

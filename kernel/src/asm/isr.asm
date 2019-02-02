@@ -243,3 +243,16 @@ timer_irq_stub:
     popaq
     iretq
 
+global acpi_sci_stub
+acpi_sci_stub:
+    cli
+    pushaq
+
+    extern acpi_sci
+    call acpi_sci
+
+    call lapic_eoi
+
+    popaq
+    iretq
+

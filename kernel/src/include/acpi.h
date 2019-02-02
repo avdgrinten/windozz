@@ -28,3 +28,4 @@ acpi_instance_t acpi_instance;
 
 acpi_status_t acpi_init(rsdp_t *);
 acpi_status_t acpi_find_table(void **, const char *, size_t);
+void acpi_install_irq();

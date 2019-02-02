@@ -87,7 +87,7 @@ void debug_putc(char val)
     }
 
     debug_buffer[debug_buffer_size] = val;
-    debug_buffer_size++;
+    /*debug_buffer_size++;*/
 }
 
 int debug_puts(const char *string)

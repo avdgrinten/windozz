@@ -34,5 +34,5 @@ _start:
 section .bss
 
 align 16
-stack_bottom:            resb 32768
+stack_bottom:            resb 131072
 stack_top:

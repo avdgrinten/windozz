@@ -23,3 +23,11 @@ void timer_irq()
 {
     timer_ticks++;
 }
+
+void timer_sleep(uint64_t ms)
+{
+    uint64_t time = timer_ticks;
+    while(timer_ticks < time + ms)
+        asm volatile ("sti; hlt");
+}
+
