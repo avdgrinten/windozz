@@ -63,14 +63,11 @@ static size_t get_ioapic(uint8_t gsi)
     for(i = 0; i < ioapic_count; i++)
     {
         if(gsi >= ioapics[i].gsi_start && gsi <= ioapics[i].gsi_end)
-            goto found;
+            return i;
     }
 
     ERROR("global interrupt line %d not available.\n");
     return 0xFF;
-
-found:
-    return i;
 }
 
 uint8_t irq_configure(uint8_t line, uintptr_t handler, uint8_t flags)

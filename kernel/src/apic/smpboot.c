@@ -36,11 +36,12 @@ void smp_boot()
 
     for(current_cpu = 1; current_cpu < cpu_count; current_cpu++)
         smp_boot_ap(current_cpu);
+
+    pml4[0] = 0;
 }
 
 static void smp_boot_ap(size_t index)
 {
-    int i;
     uint8_t apic_id = cpus[index].apic_id;
 
     cpu_booted = 0;
@@ -50,7 +51,7 @@ static void smp_boot_ap(size_t index)
     lapic_write(LAPIC_COMMAND_LOW, LAPIC_COMMAND_INIT | LAPIC_COMMAND_ASSERT);
     timer_sleep(1);
 
-    i = 0;
+    int i = 0;
     while(lapic_read(LAPIC_COMMAND_LOW) & LAPIC_COMMAND_DELIVERY)
     {
         timer_sleep(1);
@@ -67,19 +68,19 @@ static void smp_boot_ap(size_t index)
     lapic_write(LAPIC_COMMAND_LOW, LAPIC_COMMAND_SIPI | LAPIC_COMMAND_ASSERT | 0x01);
     timer_sleep(1);
 
-    i = 0;
+    int j = 0;
     while(!cpu_booted)
     {
         timer_sleep(1);
-        i++;
-        if(i > TIMER_FREQUENCY * 2)
+        j++;
+        if(j > TIMER_FREQUENCY * 2)
         {
             ERROR("local APIC ID 0x%02X is not responding.\n", apic_id);
             while(1);
         }
     }
 
-    DEBUG("CPU index %d running and responded after %dms.\n", index, i);
+    DEBUG("CPU index %d running and responded after %dms.\n", index, i + j);
 }
 
 void smp_configure_cpu(size_t index)
