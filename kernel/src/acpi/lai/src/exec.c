@@ -112,6 +112,36 @@ int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
     return status;
 }
 
+// Pushes a new item to the execution stack and returns it.
+static acpi_stackitem_t *acpi_exec_push_stack_or_die(acpi_state_t *state) {
+    state->stack_ptr++;
+    if(state->stack_ptr == 16)
+        acpi_panic("execution engine stack overflow\n");
+    return &state->stack[state->stack_ptr];
+}
+
+// Returns the n-th item from the top of the stack.
+static acpi_stackitem_t *acpi_exec_peek_stack(acpi_state_t *state, int n) {
+    if(state->stack_ptr - n < 0)
+        return NULL;
+    return &state->stack[state->stack_ptr - n];
+}
+
+// Returns the last item of the stack.
+static acpi_stackitem_t *acpi_exec_peek_stack_back(acpi_state_t *state) {
+    return acpi_exec_peek_stack(state, 0);
+}
+
+// Removes n items from the stack.
+static void acpi_exec_pop_stack(acpi_state_t *state, int n) {
+    state->stack_ptr -= n;
+}
+
+// Removes the last item from the stack.
+static void acpi_exec_pop_stack_back(acpi_state_t *state) {
+    acpi_exec_pop_stack(state, 1);
+}
+
 // acpi_exec(): Internal function, executes actual AML opcodes
 // Param:    uint8_t *method - pointer to method opcodes
 // Param:    size_t size - size of method of bytes
@@ -132,34 +162,64 @@ int acpi_exec(uint8_t *method, size_t size, acpi_state_t *state, acpi_object_t *
 
     size_t i = 0;
     acpi_object_t invoke_return;
-    state->status = 0;
-    size_t pkgsize, condition_size;
+    state->stack_ptr = -1;
 
     while(i <= size)
     {
-        /* While() loops */
-        if((state->status & ACPI_STATUS_WHILE) == 0 && i >= size)
-            break;
-
-        if((state->status & ACPI_STATUS_WHILE) != 0 && i >= state->loop_end)
-            i = state->loop_start;
-
-        /* If/Else Conditional */
-        if(!state->condition_level)
-            state->status &= ~ACPI_STATUS_CONDITIONAL;
-
-        if((state->status & ACPI_STATUS_CONDITIONAL) != 0 && i >= state->condition[state->condition_level].end)
+        acpi_stackitem_t *item = acpi_exec_peek_stack_back(state);
+        if(item)
         {
-            if(method[i] == ELSE_OP)
+            if(item->kind == LAI_LOOP_STACKITEM)
             {
-                i++;
-                pkgsize = acpi_parse_pkgsize(&method[i], &condition_size);
-                i += condition_size;
-            }
+                if(i == item->loop_pred)
+                {
+                    // We are at the beginning of a loop. We check the predicate; if it is false,
+                    // we jump to the end of the loop and remove the stack item.
+                    acpi_object_t predicate = {};
+                    i += acpi_eval_object(&predicate, state, method + i);
+                    if(!predicate.integer)
+                    {
+                        i = item->loop_end;
+                        acpi_exec_pop_stack_back(state);
+                    }
+                    continue;
+                }else if(i == item->loop_end)
+                {
+                    // Unconditionally jump to the loop's predicate.
+                    i = item->loop_pred;
+                    continue;
+                }
 
-            state->condition_level--;
-            continue;
+                if (i > item->loop_end) // This would be an interpreter bug.
+                    acpi_panic("execution escaped out of While() body\n");
+            }else if(item->kind == LAI_COND_STACKITEM)
+            {
+                // Clean up the execution stack at the end of If().
+                if(i == item->cond_end)
+                {
+                    // Consume a follow-up Else() opcode.
+                    if(i < size && method[i] == ELSE_OP) {
+                        size_t else_size;
+                        i++;
+                        size_t j = i;
+                        i += acpi_parse_pkgsize(method + i, &else_size);
+
+                        // If the condition was true, we skip the else.
+                        if(item->cond_taken)
+                            i = j + else_size;
+                    }
+
+                    acpi_exec_pop_stack_back(state);
+                    continue;
+                }
+            }else
+                acpi_panic("unexpected acpi_stackitem_t\n");
         }
+
+        if(i == size)
+            break;
+        if(i > size) // This would be an interpreter bug.
+            acpi_panic("execution escaped out of method body\n");
 
         /* Method Invokation? */
         if(acpi_is_name(method[i]))
@@ -201,63 +261,80 @@ int acpi_exec(uint8_t *method, size_t size, acpi_state_t *state, acpi_object_t *
 
         /* While Loops */
         case WHILE_OP:
-            state->loop_start = i;
+        {
+            size_t loop_size;
             i++;
-            state->loop_end = i;
-            state->status |= ACPI_STATUS_WHILE;
-            i += acpi_parse_pkgsize(&method[i], &state->loop_pkgsize);
-            state->loop_end += state->loop_pkgsize;
+            size_t j = i;
+            i += acpi_parse_pkgsize(&method[i], &loop_size);
 
-            // evaluate the predicate
-            state->loop_predicate_size = acpi_eval_object(&state->loop_predicate, state, &method[i]);
-            if(state->loop_predicate.integer == 0)
-            {
-                state->status &= ~ACPI_STATUS_WHILE;
-                i = state->loop_end;
-            } else
-            {
-                i += state->loop_predicate_size;
-            }
-
+            acpi_stackitem_t *loop_item = acpi_exec_push_stack_or_die(state);
+            loop_item->kind = LAI_LOOP_STACKITEM;
+            loop_item->loop_pred = i;
+            loop_item->loop_end = j + loop_size;
             break;
-
+        }
         /* Continue Looping */
         case CONTINUE_OP:
-            i = state->loop_start;
-            break;
-
-        /* Break Loop */
-        case BREAK_OP:
-            i = state->loop_end;
-            state->status &= ~ACPI_STATUS_WHILE;
-            break;
-
-        /* If/Else Conditional */
-        case IF_OP:
-            i++;
-            state->condition_level++;
-            state->condition[state->condition_level].end = i;
-            i += acpi_parse_pkgsize(&method[i], &state->condition[state->condition_level].pkgsize);
-            state->condition[state->condition_level].end += state->condition[state->condition_level].pkgsize;
-
-            // evaluate the predicate
-            state->condition[state->condition_level].predicate_size = acpi_eval_object(&state->condition[state->condition_level].predicate, state, &method[i]);
-            if(state->condition[state->condition_level].predicate.integer == 0)
-            {
-                i = state->condition[state->condition_level].end;
-                state->condition_level--;
-            } else
-            {
-                state->status |= ACPI_STATUS_CONDITIONAL;
-                i += state->condition[state->condition_level].predicate_size;
+        {
+            // Find the last LAI_LOOP_STACKITEM on the stack.
+            int j = 0;
+            acpi_stackitem_t *loop_item;
+            while(1) {
+                loop_item = acpi_exec_peek_stack(state, j);
+                if(!loop_item)
+                    acpi_panic("Continue() outside of While()\n");
+                if(loop_item->kind == LAI_LOOP_STACKITEM)
+                    break;
+                // TODO: Verify that we only cross conditions/loops.
+                j++;
             }
 
+            // Keep the loop item but remove nested items from the exeuction stack.
+            i = loop_item->loop_pred;
+            acpi_exec_pop_stack(state, j);
             break;
+        }
+        /* Break Loop */
+        case BREAK_OP:
+        {
+            // Find the last LAI_LOOP_STACKITEM on the stack.
+            int j = 0;
+            acpi_stackitem_t *loop_item;
+            while(1) {
+                loop_item = acpi_exec_peek_stack(state, j);
+                if(!loop_item)
+                    acpi_panic("Break() outside of While()\n");
+                if(loop_item->kind == LAI_LOOP_STACKITEM)
+                    break;
+                // TODO: Verify that we only cross conditions/loops.
+                j++;
+            }
 
-        case ELSE_OP:
+            // Remove the loop item from the execution stack.
+            i = loop_item->loop_end;
+            acpi_exec_pop_stack(state, j + 1);
+            break;
+        }
+        /* If/Else Conditional */
+        case IF_OP:
+        {
+            size_t if_size;
             i++;
-            pkgsize = acpi_parse_pkgsize(&method[i], &condition_size);
-            i += pkgsize;
+            size_t j = i;
+            i += acpi_parse_pkgsize(method + i, &if_size);
+
+            // Evaluate the predicate
+            acpi_object_t predicate = {};
+            i += acpi_eval_object(&predicate, state, method + i);
+
+            acpi_stackitem_t *cond_item = acpi_exec_push_stack_or_die(state);
+            cond_item->kind = LAI_COND_STACKITEM;
+            cond_item->cond_taken = !!predicate.integer;
+            cond_item->cond_end = j + if_size;
+            break;
+        }
+        case ELSE_OP:
+            acpi_panic("Else() outside of If()\n");
             break;
 
         /* Most of the type 2 opcodes are implemented in exec2.c */
