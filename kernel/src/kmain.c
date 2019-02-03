@@ -17,7 +17,6 @@
 #include <stddef.h>
 #include <lai.h>
 #include <timer.h>
-#include <pci.h>
 
 boot_info_t boot_info;
 
@@ -35,20 +34,8 @@ void kmain(boot_info_t *boot_info_tmp)
     acpi_create_namespace(acpi_instance.dsdt);
     acpi_install_irq();
 
-    /* show IRQs of all devices on PCI bus 0 */
-    pci_dev_t dev;
-    dev.bus = 0;
-    dev.function = 0;
     acpi_resource_t resource;
-
-    for(int i = 0; i < 32; i++)
-    {
-        dev.slot = i;
-        if(pci_read(&dev, 0) == 0xFFFFFFFF)
-            break;
-
-        acpi_pci_route(&resource, dev.bus, dev.slot, dev.function);
-    }
+    acpi_pci_route(&resource, 0, 3, 0);
 
     DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
     while(1);
