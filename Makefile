@@ -19,7 +19,7 @@ all:
 	@rm -f part.hdd
 
 run:
-	@qemu-system-x86_64 -drive file=disk.hdd,format=raw -serial stdio -smp 8
+	@qemu-system-x86_64 -drive file=disk.hdd,format=raw -debugcon stdio -smp 8
 
 clean:
 	@rm -f disk.hdd
