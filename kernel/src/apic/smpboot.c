@@ -91,6 +91,7 @@ void smp_kmain()
 {
     smp_configure_cpu(current_cpu);
     load_idt(idtr);
+    lapic_configure();
 
     cpu_booted = 1;
 
