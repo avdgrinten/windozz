@@ -134,8 +134,8 @@ void smp_configure_cpu(size_t);
 #define LAPIC_COMMAND_INIT      (5 << 8)
 #define LAPIC_COMMAND_SIPI      (6 << 8)
 #define LAPIC_COMMAND_DELIVERY  (1 << 12)
-#define LAPIC_COMMAND_DEASSERT  (1 << 15)
 #define LAPIC_COMMAND_ASSERT    (1 << 14)
+#define LAPIC_COMMAND_DEASSERT  (1 << 15)
 
 uint32_t lapic_read(size_t);
 void lapic_write(size_t, uint32_t);

@@ -33,9 +33,7 @@ void kmain(boot_info_t *boot_info_tmp)
     timer_init();
     acpi_create_namespace(acpi_instance.dsdt);
     acpi_install_irq();
-
-    acpi_resource_t resource;
-    acpi_pci_route(&resource, 0, 3, 0);
+    smp_boot();
 
     DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
     while(1);

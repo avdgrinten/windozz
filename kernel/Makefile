@@ -10,7 +10,10 @@ OBJ := $(SRC:.c=.o)
 ASRC := $(shell find ./src -type f -name '*.asm')
 AOBJ := $(ASRC:.asm=.o)
 
-winkern: $(AOBJ) $(OBJ)
+A16SRC := $(shell find ./src -type f -name '*.a16')
+A16OBJ := $(A16SRC:.a16=.bin)
+
+winkern: $(A16OBJ) $(AOBJ) $(OBJ)
 	@echo "\e[0m\e[1m\e[34m[ LD ]\e[0m winkern"
 	@$(LD) $(LFLAGS) -T kernel.ld -o winkern $(OBJ) $(AOBJ)
 
@@ -22,5 +25,9 @@ winkern: $(AOBJ) $(OBJ)
 	@echo "\e[0m\e[1m\e[34m[ AS ]\e[0m $@"
 	@nasm -f elf64 $< -o $@
 
+%.bin: %.a16
+	@echo "\e[0m\e[1m\e[34m[ AS ]\e[0m $@"
+	@nasm -f bin $< -o $@
+
 clean:
-	@rm -f $(OBJ) $(AOBJ) winkern
+	@rm -f $(A16OBJ) $(OBJ) $(AOBJ) winkern

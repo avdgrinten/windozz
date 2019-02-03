@@ -1,0 +1,103 @@
+
+; The Windozz Project
+; Copyright (C) 2018-2019 by the Windozz authors.
+
+; SMP Trampoline Code
+
+org 0x1000
+bits 16
+
+main:
+    cli
+    cld
+    jmp 0x0000:.next
+
+.next:
+    xor ax, ax
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    lgdt [gdtr]
+
+    ; enable PAE, PSE and SSE
+    mov eax, 0x630
+    mov cr4, eax
+
+    mov eax, cr0
+    and eax, 0xFFFFFFFB
+    or eax, 2
+    mov cr0, eax
+
+    mov eax, dword[8]
+    mov cr3, eax
+
+    mov ecx, 0xC0000080
+    rdmsr
+    or eax, 0x100
+    wrmsr
+
+    ; enable long mode, caching, paging, write security
+    mov eax, cr0
+    or eax, 0x80010001
+    and eax, 0x9FFFFFFF
+    mov cr0, eax
+
+    jmp 0x08:.lmode
+
+bits 64
+align 16
+.lmode:
+    mov rax, 0x10
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov rsp, ap_stack
+
+    mov rax, [0]
+    call rax
+
+    ; should be impossible to reach here
+
+.hang:
+    hlt
+    jmp .hang
+
+align 16
+gdt:
+    ; 0x00 - NULL
+    dq 0
+
+    ; 0x08 - 64-bit code
+    dw 0xFFFF        ; limit low
+    dw 0x0000        ; base low
+    db 0x00            ; base middle
+    db 10011010b        ; access byte
+    db 10101111b        ; flags and limit high
+    db 0x00            ; base high
+
+    ; 0x10 - 64-bit data
+    dw 0xFFFF        ; limit low
+    dw 0x0000        ; base low
+    db 0x00            ; base middle
+    db 10010010b        ; access byte
+    db 10101111b        ; flags and limit high
+    db 0x00            ; base high
+end_of_gdt:
+
+align 16
+gdtr:
+    dw end_of_gdt - gdt - 1
+    dq gdt
+
+; Temporary stack
+align 16
+ap_stack_bottom:            resb 1024
+ap_stack:
+
+
+
