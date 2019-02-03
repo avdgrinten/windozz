@@ -9,9 +9,17 @@
 #include <stdint.h>
 
 #define IA32_APIC_BASE                  0x1B
+#define IA32_PAT                        0x277
 
 #define IA32_APIC_BASE_BSP              (1 << 8)
 #define IA32_APIC_BASE_ENABLED          (1 << 11)
+
+#define IA32_PAT_UC                     0
+#define IA32_PAT_WC                     1
+#define IA32_PAT_WT                     4
+#define IA32_PAT_WP                     5
+#define IA32_PAT_WB                     6
+#define IA32_PAT_UCD                    7
 
 #define GDT_ENTRY_NULL                  0
 #define GDT_ENTRY_KCODE                 1

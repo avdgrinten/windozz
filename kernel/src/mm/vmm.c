@@ -76,6 +76,23 @@ uintptr_t vmm_get_page(uintptr_t virtual)
     return page;
 }
 
+void vmm_set_wc(uintptr_t page, size_t count)
+{
+    uintptr_t physical;
+    uintptr_t flags;
+    for(size_t i = 0; i < count; i++)
+    {
+        physical = vmm_get_page(page + (i * PAGE_SIZE));
+        flags = physical & 0xFFF;
+        physical &= PAGE_MASK;
+
+        flags &= ~PAGE_UNCACHEABLE;
+        flags |= PAGE_WRITE_COMBINE;
+
+        vmm_map_page(page + (i * PAGE_SIZE), physical, flags);
+    }
+}
+
 bool vmm_get_physical(uintptr_t *destination, uintptr_t page)
 {
     if(page >= PHYSICAL_MEMORY && page < MMIO_REGION)
@@ -262,7 +279,8 @@ uintptr_t vmm_create_mmio(uintptr_t physical, size_t pages, char *name)
         while(1);
     }
 
-    vmm_map_page(virtual, physical, PAGE_PRESENT | PAGE_WRITE | PAGE_UNCACHEABLE);
+    for(size_t i = 0; i < pages; i++)
+        vmm_map_page(virtual + (i * PAGE_SIZE), physical + (i * PAGE_SIZE), PAGE_PRESENT | PAGE_WRITE | PAGE_UNCACHEABLE);
 
     mmio_regions[mmio_region_count].virtual = virtual;
     mmio_regions[mmio_region_count].physical = physical;

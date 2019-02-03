@@ -53,6 +53,7 @@ void screen_init()
         screens[0].width = mode_info->width;
         screens[0].height = mode_info->height;
         screens[0].pitch = mode_info->pitch;
+        screens[0].size = mode_info->height * mode_info->pitch;
         screens[0].x_max = (screens[0].width / CHAR_WIDTH) - 1;
         screens[0].y_max = (screens[0].height / 16) - 1;
         screens[0].framebuffer = (uintptr_t)mode_info->framebuffer + PHYSICAL_MEMORY;
@@ -76,6 +77,12 @@ void screen_init()
 screen_t *get_bootfb()
 {
     return &screens[0];
+}
+
+static void redraw(screen_t *screen)
+{
+    if((!screen->locked) && screen->using_back_buffer)
+        memcpy((void *)screen->framebuffer, (void *)screen->back_buffer, screen->size);
 }
 
 static inline void *pixel_offset(screen_t *screen, uint16_t x, uint16_t y)
@@ -111,6 +118,8 @@ static void scroll(screen_t *screen)
 
     screen->x = 0;
     screen->y = screen->y_max;
+
+    redraw(screen);
 }
 
 static void parse_escape_sequence(screen_t *screen)
@@ -161,9 +170,9 @@ void putc(screen_t *screen, char value)
         screen->y++;
 
         if(screen->y > screen->y_max)
-        {
             scroll(screen);
-        }
+        else
+            redraw(screen);
 
         return;
     }
@@ -229,4 +238,29 @@ void puts(screen_t *screen, const char *str)
     {
         putc(screen, str[i]);
     }
+}
+
+void screen_setup_buffer()
+{
+    screen_t *bootfb = get_bootfb();
+    void *back_buffer = kmalloc(bootfb->size);
+    if(!back_buffer)
+    {
+        ERROR("unable to allocate a back buffer.\n");
+        while(1);
+    }
+
+    bootfb->back_buffer = (uintptr_t)back_buffer;
+
+    memcpy(back_buffer, (void *)bootfb->framebuffer, bootfb->size);
+    bootfb->using_back_buffer = true;
+    bootfb->locked = false;
+
+    DEBUG("back buffer is at 0x%016lX\n", back_buffer);
+
+    /* set main buffer as write-combine */
+    bootfb->framebuffer = vmm_create_mmio(bootfb->framebuffer - PHYSICAL_MEMORY, (bootfb->size + PAGE_SIZE - 1) / PAGE_SIZE, "framebuffer");
+    vmm_set_wc(bootfb->framebuffer, (bootfb->size + PAGE_SIZE - 1) / PAGE_SIZE);
+
+    DEBUG("set framebuffer cache type as write-combine.\n");
 }

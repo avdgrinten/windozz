@@ -28,6 +28,7 @@ void kmain(boot_info_t *boot_info_tmp)
     mm_init();
     smp_configure_cpu(0);
     idt_init();
+    screen_setup_buffer();
     acpi_init((rsdp_t *)boot_info.acpi_rsdp);
     apic_init();
     timer_init();

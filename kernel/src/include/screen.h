@@ -18,6 +18,7 @@ typedef struct screen_t
     bool using_back_buffer;
     bool locked;
     uint16_t width, height, pitch;
+    size_t size;
     uint16_t x_max, y_max;        /* for debug log */
     uint16_t x, y;
     uint32_t bg, fg;
@@ -34,3 +35,5 @@ void screen_init();
 void putc(screen_t *, char);
 void puts(screen_t *, const char *);
 screen_t *get_bootfb();
+void screen_setup_buffer();
+

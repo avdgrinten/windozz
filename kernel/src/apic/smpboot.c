@@ -86,6 +86,16 @@ static void smp_boot_ap(size_t index)
 void smp_configure_cpu(size_t index)
 {
     gdt_init();
+    uint64_t pat = (IA32_PAT_WB)
+        | ((uint64_t)IA32_PAT_WC << 8)
+        | ((uint64_t)IA32_PAT_UCD << 16)
+        | ((uint64_t)IA32_PAT_UC << 24)
+        | ((uint64_t)IA32_PAT_WB << 32)
+        | ((uint64_t)IA32_PAT_WT << 40)
+        | ((uint64_t)IA32_PAT_UCD << 48)
+        | ((uint64_t)IA32_PAT_UC << 56);
+
+    write_msr(IA32_PAT, pat);
 }
 
 void smp_kmain()
