@@ -131,7 +131,8 @@ size_t acpi_eval_object(acpi_object_t *destination, acpi_state_t *state, void *d
     char name[ACPI_MAX_NAME];
     acpi_object_t *destination_reg;
     acpi_object_t *sizeof_object;
-    acpi_object_t n1, n2;
+    acpi_object_t n1 = {0};
+    acpi_object_t n2 = {0};
 
     // try register
     if(object[0] >= LOCAL0_OP && object[0] <= LOCAL7_OP)
@@ -354,7 +355,8 @@ size_t acpi_eval_object(acpi_object_t *destination, acpi_state_t *state, void *d
 
         size_t index_size;
 
-        acpi_object_t ref, index;
+        acpi_object_t ref = {0};
+        acpi_object_t index = {0};
         index_size = acpi_eval_object(&ref, state, &object[0]);
         return_size += index_size;
         object += index_size;
@@ -626,7 +628,8 @@ size_t acpi_eval_object(acpi_object_t *destination, acpi_state_t *state, void *d
         return_size += integer_size;
         object += integer_size;
 
-        acpi_object_t mod, quo;
+        acpi_object_t mod = {0};
+        acpi_object_t quo = {0};
         mod.type = ACPI_INTEGER;
         quo.type = ACPI_INTEGER;
 
@@ -679,9 +682,12 @@ int acpi_eval(acpi_object_t *destination, char *path)
     } else if(handle->type == ACPI_NAMESPACE_METHOD)
     {
         acpi_state_t state;
-        acpi_memset(&state, 0, sizeof(acpi_state_t));
-        acpi_strcpy(state.name, path);
-        return acpi_exec_method(&state, destination);
+        acpi_init_call_state(&state, handle);
+        int ret;
+        if((ret = acpi_exec_method(&state)))
+            return ret;
+        acpi_move_object(destination, &state.retvalue);
+        acpi_finalize_state(&state);
     }
 
     return 1;

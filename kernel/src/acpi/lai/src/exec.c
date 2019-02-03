@@ -32,12 +32,27 @@ const char *supported_osi_strings[] =
     "Windows 2015",        /* Windows 10 */
 };
 
+// Prepare the interpreter state for a control method call.
+// Param: acpi_state_t *state - will store method name and arguments
+// Param: acpi_nsnode_t *method - identifies the control method
+
+void acpi_init_call_state(acpi_state_t *state, acpi_nsnode_t *method) {
+    acpi_memset(state, 0, sizeof(acpi_state_t));
+    acpi_strcpy(state->name, method->path);
+}
+
+// Finalize the interpreter state. Frees all memory owned by the state.
+
+void acpi_finalize_state(acpi_state_t *state) {
+    // TODO: Free memory occupied by buffers and packages in LocalX, ArgX and the return value.
+}
+
 // acpi_exec_method(): Finds and executes a control method
 // Param:    acpi_state_t *state - method name and arguments
 // Param:    acpi_object_t *method_return - return value of method
 // Return:    int - 0 on success
 
-int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
+int acpi_exec_method(acpi_state_t *state)
 {
     acpi_nsnode_t *method;
     acpi_memset(state->local, 0, sizeof(acpi_object_t) * 8);
@@ -61,8 +76,8 @@ int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
         if(!osi_return && !acpi_strcmp(state->arg[0].string, "Linux"))
             acpi_warn("buggy BIOS requested _OSI('Linux'), ignoring...\n");
 
-        method_return->type = ACPI_INTEGER;
-        method_return->integer = osi_return;
+        state->retvalue.type = ACPI_INTEGER;
+        state->retvalue.integer = osi_return;
 
         acpi_debug("_OSI('%s') returned 0x%X\n", state->arg[0].string, osi_return);
         return 0;
@@ -71,11 +86,11 @@ int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
     // OS family -- pretend to be Windows
     if(!acpi_strcmp(state->name, "\\._OS_"))
     {
-        method_return->type = ACPI_STRING;
-        method_return->string = acpi_malloc(acpi_strlen(acpi_emulated_os));
-        acpi_strcpy(method_return->string, acpi_emulated_os);
+        state->retvalue.type = ACPI_STRING;
+        state->retvalue.string = acpi_malloc(acpi_strlen(acpi_emulated_os));
+        acpi_strcpy(state->retvalue.string, acpi_emulated_os);
 
-        acpi_debug("_OS_ returned '%s'\n", method_return->string);
+        acpi_debug("_OS_ returned '%s'\n", state->retvalue.string);
         return 0;
     }
 
@@ -83,10 +98,10 @@ int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
     // at least ACPI 2.0. Therefore we also need to do the same.
     if(!acpi_strcmp(state->name, "\\._REV"))
     {
-        method_return->type = ACPI_INTEGER;
-        method_return->integer = acpi_implemented_version;
+        state->retvalue.type = ACPI_INTEGER;
+        state->retvalue.integer = acpi_implemented_version;
 
-        acpi_debug("_REV returned %d\n", method_return->integer);
+        acpi_debug("_REV returned %d\n", state->retvalue.integer);
         return 0;
     }
 
@@ -97,17 +112,17 @@ int acpi_exec_method(acpi_state_t *state, acpi_object_t *method_return)
 
     //acpi_debug("execute control method %s\n", state->name);
 
-    int status = acpi_exec(method->pointer, method->size, state, method_return);
+    int status = acpi_exec(method->pointer, method->size, state, &state->retvalue);
 
     /*acpi_debug("%s finished, ", state->name);
 
-    if(method_return->type == ACPI_INTEGER)
-        acpi_debug("return value is integer: %d\n", method_return->integer);
-    else if(method_return->type == ACPI_STRING)
-        acpi_debug("return value is string: '%s'\n", method_return->string);
-    else if(method_return->type == ACPI_PACKAGE)
+    if(state->retvalue.type == ACPI_INTEGER)
+        acpi_debug("return value is integer: %d\n", state->retvalue.integer);
+    else if(state->retvalue.type == ACPI_STRING)
+        acpi_debug("return value is string: '%s'\n", state->retvalue.string);
+    else if(state->retvalue.type == ACPI_PACKAGE)
         acpi_debug("return value is package\n");
-    else if(method_return->type == ACPI_BUFFER)
+    else if(state->retvalue.type == ACPI_BUFFER)
         acpi_debug("return value is buffer\n");*/
 
     return status;
@@ -162,7 +177,7 @@ int acpi_exec(uint8_t *method, size_t size, acpi_state_t *state, acpi_object_t *
     acpi_strcpy(acpins_path, state->name);
 
     size_t i = 0;
-    acpi_object_t invoke_return;
+    acpi_object_t invoke_return = {0};
     state->stack_ptr = -1;
 
     while(i <= size)
@@ -176,7 +191,7 @@ int acpi_exec(uint8_t *method, size_t size, acpi_state_t *state, acpi_object_t *
                 {
                     // We are at the beginning of a loop. We check the predicate; if it is false,
                     // we jump to the end of the loop and remove the stack item.
-                    acpi_object_t predicate = {};
+                    acpi_object_t predicate = {0};
                     i += acpi_eval_object(&predicate, state, method + i);
                     if(!predicate.integer)
                     {
@@ -337,7 +352,7 @@ int acpi_exec(uint8_t *method, size_t size, acpi_state_t *state, acpi_object_t *
             i += acpi_parse_pkgsize(method + i, &if_size);
 
             // Evaluate the predicate
-            acpi_object_t predicate = {};
+            acpi_object_t predicate = {0};
             i += acpi_eval_object(&predicate, state, method + i);
 
             acpi_stackitem_t *cond_item = acpi_exec_push_stack_or_die(state);
@@ -436,18 +451,17 @@ size_t acpi_methodinvoke(void *data, acpi_state_t *old_state, acpi_object_t *met
     size_t return_size = 0;
 
     // determine the name of the method
-    acpi_state_t *state = acpi_malloc(sizeof(acpi_state_t));
-    size_t name_size = acpins_resolve_path(state->name, methodinvokation);
+    char path[ACPI_MAX_NAME];
+    size_t name_size = acpins_resolve_path(path, methodinvokation);
     return_size += name_size;
     methodinvokation += name_size;
 
-    acpi_nsnode_t *method;
-    method = acpi_exec_resolve(state->name);
+    acpi_nsnode_t *method = acpi_exec_resolve(path);
     if(!method)
-    {
-        acpi_panic("undefined MethodInvokation %s\n", state->name);
-    }
+        acpi_panic("undefined MethodInvokation %s\n", path);
 
+    acpi_state_t state;
+    acpi_init_call_state(&state, method);
     uint8_t argc = method->method_flags & METHOD_ARGC_MASK;
     uint8_t current_argc = 0;
     size_t arg_size;
@@ -456,7 +470,7 @@ size_t acpi_methodinvoke(void *data, acpi_state_t *old_state, acpi_object_t *met
         // parse method arguments here
         while(current_argc < argc)
         {
-            arg_size = acpi_eval_object(&state->arg[current_argc], old_state, methodinvokation);
+            arg_size = acpi_eval_object(&state.arg[current_argc], old_state, methodinvokation);
             methodinvokation += arg_size;
             return_size += arg_size;
 
@@ -465,7 +479,9 @@ size_t acpi_methodinvoke(void *data, acpi_state_t *old_state, acpi_object_t *met
     }
 
     // execute
-    acpi_exec_method(state, method_return);
+    acpi_exec_method(&state);
+    acpi_move_object(method_return, &state.retvalue);
+    acpi_finalize_state(&state);
 
     // restore state
     acpi_strcpy(acpins_path, path_save);
@@ -483,7 +499,7 @@ size_t acpi_exec_sleep(void *data, acpi_state_t *state)
     uint8_t *opcode = (uint8_t*)data;
     opcode += 2;        // skip EXTOP_PREFIX and SLEEP_OP
 
-    acpi_object_t time;
+    acpi_object_t time = {0};
     return_size += acpi_eval_object(&time, state, &opcode[0]);
 
     if(time.integer == 0)

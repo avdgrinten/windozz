@@ -57,31 +57,36 @@ void acpi_set_event(uint16_t value)
 
 int acpi_enable(uint32_t mode)
 {
+    acpi_nsnode_t *handle;
+    acpi_state_t state;
     acpi_debug("attempt to enable ACPI...\n");
 
     /* first run \._SB_._INI */
-    acpi_state_t state;
-    acpi_object_t method_return;
-    acpi_memset(&state, 0, sizeof(acpi_state_t));
-    acpi_memset(&method_return, 0, sizeof(acpi_object_t));
-
-    acpi_strcpy(state.name, "\\._SB_._INI");
-    if(!acpi_exec_method(&state, &method_return))
-        acpi_debug("evaluated \\._SB_._INI\n");
+    handle = acpins_resolve("\\._SB_._INI");
+    if(handle) {
+        acpi_init_call_state(&state, handle);
+        if(!acpi_exec_method(&state))
+            acpi_debug("evaluated \\._SB_._INI\n");
+        acpi_finalize_state(&state);
+    }else
+        acpi_debug("\\._SB_.INI does not exist\n");
 
     /* _STA/_INI for all devices */
     acpi_init_children("\\._SB_");
 
     /* tell the firmware about the IRQ mode */
-    acpi_memset(&state, 0, sizeof(acpi_state_t));
-    acpi_memset(&method_return, 0, sizeof(acpi_object_t));
+    handle = acpins_resolve("\\._PIC");
+    if(handle)
+    {
+        acpi_init_call_state(&state, handle);
+        acpi_arg(&state, 0)->type = ACPI_INTEGER;
+        acpi_arg(&state, 0)->integer = mode;
 
-    acpi_strcpy(state.name, "\\._PIC");
-    state.arg[0].type = ACPI_INTEGER;
-    state.arg[0].integer = mode;
-
-    if(!acpi_exec_method(&state, &method_return))
-        acpi_debug("evaluated \\._PIC(%d)\n", mode);
+        if(!acpi_exec_method(&state))
+            acpi_debug("evaluated \\._PIC(%d)\n", mode);
+        acpi_finalize_state(&state);
+    }else
+        acpi_debug("\\._PIC does not exist\n");
 
     /* enable ACPI SCI */
     acpi_outb(acpi_fadt->smi_command_port, acpi_fadt->acpi_enable);
@@ -106,7 +111,8 @@ int acpi_enable(uint32_t mode)
 static void acpi_init_children(char *parent)
 {
     acpi_nsnode_t *node;
-    acpi_object_t object, method_return;
+    acpi_object_t object = {0};
+    acpi_nsnode_t *handle;
     acpi_state_t state;
     char path[ACPI_MAX_NAME];
     int status;
@@ -134,14 +140,15 @@ static void acpi_init_children(char *parent)
             {
                 acpi_strcpy(path, node->path);
                 acpi_strcpy(path + acpi_strlen(path), "._INI");
+                handle = acpins_resolve(path);
 
-                acpi_memset(&state, 0, sizeof(acpi_state_t));
-                acpi_memset(&method_return, 0, sizeof(acpi_object_t));
-
-                acpi_strcpy(state.name, path);
-
-                if(!acpi_exec_method(&state, &method_return))
-                    acpi_debug("evaluated %s\n", state.name);
+                if(handle)
+                {
+                    acpi_init_call_state(&state, handle);
+                    if(!acpi_exec_method(&state))
+                        acpi_debug("evaluated %s\n", state.name);
+                    acpi_finalize_state(&state);
+                }
             }
 
             /* if functional and/or present, enumerate the children */
