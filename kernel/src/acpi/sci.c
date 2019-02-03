@@ -24,9 +24,9 @@ void acpi_install_irq()
 
 void acpi_sci()
 {
-    uint16_t event = acpi_read_event();
-    DEBUG("ACPI SCI occurred, event data 0x%04X: %s %s %s\n", event,
+    acpi_read_event();
+    /*DEBUG("ACPI SCI occurred, event data 0x%04X: %s %s %s\n", event,
         event & ACPI_POWER_BUTTON ? "power button" : "",
         event & ACPI_SLEEP_BUTTON ? "sleep button" : "",
-        event & ACPI_WAKE ? "wake" : "");
+        event & ACPI_WAKE ? "wake" : "");*/
 }
