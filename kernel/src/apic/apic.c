@@ -183,6 +183,18 @@ static void create_override(madt_override_t *override)
     override_count++;
 }
 
+cpu_t *get_cpu()
+{
+    uint8_t apic_id = get_apic_id();
+    for(int i = 0; i < cpu_count; i++)
+    {
+        if(cpus[i].apic_id == apic_id) return &cpus[i];
+    }
+
+    ERROR("unable to find local APIC ID 0x%02X\n", apic_id);
+    while(1);
+}
+
 /* spurious IRQ handlers for the XT PIC */
 
 void pic0_spurious()

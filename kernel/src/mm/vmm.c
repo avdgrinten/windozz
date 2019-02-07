@@ -17,10 +17,11 @@
 
 mutex_t vmm_mutex = MUTEX_FREE;
 mmio_t *mmio_regions;
+uintptr_t *bsp_pml4;
 
 void vmm_init()
 {
-    uintptr_t *bsp_pml4 = (uintptr_t *)((uintptr_t)read_cr3() + PHYSICAL_MEMORY);
+    bsp_pml4 = (uintptr_t *)((uintptr_t)read_cr3() + PHYSICAL_MEMORY);
     DEBUG("BSP PML4 starts at 0x%016lX\n", bsp_pml4);
 
     bsp_pml4[0] = 0;        /* unmap the lowest 512 GB */

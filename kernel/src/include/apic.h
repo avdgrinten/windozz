@@ -39,6 +39,8 @@ typedef struct cpu_t
     char vendor[13];
     char model[72];
     uint64_t clockspeed;
+    int pid, tid;
+    int sys_ready;
 } cpu_t;
 
 typedef struct ioapic_t
@@ -119,6 +121,8 @@ uintptr_t lapic_physical;
 void *lapic;
 
 void apic_init();
+uint8_t get_apic_id();
+cpu_t *get_cpu();
 void smp_boot();
 void smp_configure_cpu(size_t);
 
@@ -140,6 +144,7 @@ void smp_configure_cpu(size_t);
 uint32_t lapic_read(size_t);
 void lapic_write(size_t, uint32_t);
 void lapic_configure();
+void lapic_eoi();
 
 /* ioapic stuff */
 #define IOAPIC_ID               0

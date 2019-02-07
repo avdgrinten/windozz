@@ -7,6 +7,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <apic.h>
 
 #define IA32_APIC_BASE                  0x1B
 #define IA32_PAT                        0x277

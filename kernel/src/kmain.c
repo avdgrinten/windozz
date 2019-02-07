@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <lai.h>
 #include <timer.h>
+#include <sys.h>
 
 boot_info_t boot_info;
 
@@ -35,7 +36,21 @@ void kmain(boot_info_t *boot_info_tmp)
     acpi_create_namespace(acpi_instance.dsdt);
     acpi_install_irq();
     smp_boot();
+    sched_init();
 
-    DEBUG("Boot finished, %d MB used and %d MB free.\n", used_pages / 256, (total_pages - used_pages) / 256);
     while(1);
 }
+
+void idle()
+{
+    while(1) asm volatile ("sti\nhlt");
+}
+
+void kmain_late()
+{
+    DEBUG("Hello from a new task!\n");
+
+    create_thread((uintptr_t)&idle);
+    while(1);
+}
+

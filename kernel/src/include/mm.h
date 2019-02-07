@@ -63,6 +63,7 @@ bool pmm_get_page(uintptr_t);
 uintptr_t pmm_alloc_page();
 void pmm_free_page(uintptr_t);
 
+uintptr_t *bsp_pml4;
 uintptr_t vmm_get_page(uintptr_t);
 void vmm_map_page(uintptr_t, uintptr_t, uintptr_t);
 void vmm_free(uintptr_t, size_t);

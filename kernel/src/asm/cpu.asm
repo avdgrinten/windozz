@@ -228,3 +228,18 @@ align 16
 
     ret
 
+; uint8_t get_apic_id()
+align 16
+global get_apic_id
+get_apic_id:
+    push rbx
+
+    mov eax, 1
+    cpuid
+
+    mov rax, rbx
+    pop rbx
+    shr rax, 24
+    and rax, 0xFF
+
+    ret

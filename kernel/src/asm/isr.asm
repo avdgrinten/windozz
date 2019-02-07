@@ -232,9 +232,43 @@ lapic_spurious_stub:
 
 global timer_irq_stub
 timer_irq_stub:
-    cli
     pushaq
 
+    mov r15, state
+
+    mov [r15+0], rax
+    mov [r15+8], rbx
+    mov [r15+16], rcx
+    mov [r15+24], rdx
+    mov [r15+32], rsi
+    mov [r15+40], rdi
+    mov [r15+48], rbp
+    mov [r15+56], r8
+    mov [r15+64], r9
+    mov [r15+72], r10
+    mov [r15+80], r11
+    mov [r15+88], r12
+    mov [r15+96], r13
+    mov [r15+104], r14
+
+    mov rax, [rsp]  ; r15
+    mov [r15+112], rax
+
+    mov rax, [rsp+120]  ; rip
+    mov [r15+120], rax
+
+    mov rax, [rsp+128]  ; cs
+    mov [r15+144], rax
+    add rax, 8           ; ds
+    mov [r15+152], rax
+
+    mov rax, [rsp+136]  ; rflags
+    mov [r15+136], rax
+
+    mov rax, [rsp+144]  ; rsp
+    mov [r15+128], rax
+
+    mov rdi, state
     extern timer_irq
     call timer_irq
 
@@ -245,7 +279,6 @@ timer_irq_stub:
 
 global acpi_sci_stub
 acpi_sci_stub:
-    cli
     pushaq
 
     extern acpi_sci
@@ -255,4 +288,30 @@ acpi_sci_stub:
 
     popaq
     iretq
+
+section .data
+
+align 16
+state:
+    .rax            dq 0
+    .rbx            dq 0
+    .rcx            dq 0
+    .rdx            dq 0
+    .rsi            dq 0
+    .rdi            dq 0
+    .rbp            dq 0
+    .r8             dq 0
+    .r9             dq 0
+    .r10            dq 0
+    .r11            dq 0
+    .r12            dq 0
+    .r13            dq 0
+    .r14            dq 0
+    .r15            dq 0
+
+    .rip            dq 0    ; 120
+    .rsp            dq 0    ; 128
+    .rflags         dq 0    ; 136
+    .cs             dq 0    ; 144
+    .ds             dq 0    ; 152
 

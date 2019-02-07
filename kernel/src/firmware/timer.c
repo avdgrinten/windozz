@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <debug.h>
 #include <timer.h>
+#include <sys.h>
 
 uint64_t timer_ticks = 0;
 uint8_t timer_irq_line;
@@ -19,9 +20,11 @@ void timer_init()
     pit_init();
 }
 
-void timer_irq()
+void timer_irq(thread_t *context)
 {
     timer_ticks++;
+    if(sys_ready && (timer_ticks % 10))
+        resched(context);
 }
 
 void timer_sleep(uint64_t ms)
