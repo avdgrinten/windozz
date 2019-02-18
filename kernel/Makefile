@@ -1,6 +1,6 @@
 
 CC = clang -target x86_64-elf-none
-CFLAGS = -Wall -m64 -mcmodel=large -mno-red-zone -O2 -ffreestanding -fomit-frame-pointer -nodefaultlibs -fno-builtin -nostdlib -nostdinc -I./src/include -I./src/acpi/lai/src -I./src/acpi/lai/src/windozz -mno-sse -mno-sse2 -DCOM1_DEBUG
+CFLAGS = -Wall -m64 -mcmodel=large -mno-red-zone -O2 -ffreestanding -fomit-frame-pointer -nodefaultlibs -fno-builtin -nostdlib -nostdinc -I./src/include -I./src/acpi/lai/include -I./src/acpi/lai/src/windozz -mno-sse -mno-sse2 -DCOM1_DEBUG
 LD = ld
 LFLAGS = -O2 -nostdlib -nostartfiles -nodefaultlibs
 

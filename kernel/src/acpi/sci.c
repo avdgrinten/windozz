@@ -6,7 +6,7 @@
 
 #define MODULE              "acpi"
 
-#include <lai.h>
+#include <lai/core.h>
 #include <acpi.h>
 #include <apic.h>
 #include <debug.h>

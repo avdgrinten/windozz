@@ -15,7 +15,7 @@
 #include <acpi.h>
 #include <apic.h>
 #include <stddef.h>
-#include <lai.h>
+#include <lai/core.h>
 #include <timer.h>
 #include <sys.h>
 
