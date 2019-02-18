@@ -75,14 +75,47 @@ start:
     mov si, no_64
     jz error
 
-    ; detect EDD info
+    ; detect disk geometry using EDD
     mov ah, 0x48
     mov dl, byte[boot_info.bootdisk]
     mov si, edd_info
     int 0x13
-    mov si, edd_error_msg
-    jc error
+    jnc .next2
 
+    ; try detecting disk without EDD
+    mov ah, 0x08
+    mov dl, byte[boot_info.bootdisk]
+    int 0x13
+    jc .no_geometry
+
+    ; fake it till you make it
+    mov word[edd_info.size], 26
+    mov byte[edd_info.cylinders], ch
+    mov ch, cl
+    shr ch, 6
+    or byte[edd_info.cylinders+1], ch
+    and cl, 0x3F
+    mov byte[edd_info.sectors], cl
+    mov byte[edd_info.heads], dh
+    mov word[edd_info.bytes_per_sector], 512
+
+    mov eax, [edd_info.cylinders]
+    mov ebx, [edd_info.sectors]
+    mul ebx
+    mov ebx, [edd_info.heads]
+    mul ebx
+    mov dword[edd_info.total_sectors], eax
+    mov dword[edd_info.total_sectors+4], edx
+
+    jmp .next2
+
+.no_geometry:
+    ; not sure if this is possible, but okay
+    mov word[edd_info.size], 0
+    mov dword[boot_info.bios_edd_info], 0
+    mov dword[boot_info.bios_edd_info+4], 0
+
+.next2:
     call detect_memory
     call do_a20
 
@@ -222,7 +255,6 @@ lmode:
     no_64                db "CPU is not 64-bit capable.",0
     cd_msg                db "optical disc boot not implemented yet.",0
     bad_fs_msg            db "unsupported filesystem.",0
-    edd_error_msg            db "BIOS EDD geometry function failed.",0
     rsdp_msg            db "ACPI root table not found.", 0
     kernel_filename            db "winkern", 0
     rsdp_signature            db "RSD PTR "
