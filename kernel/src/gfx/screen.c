@@ -21,18 +21,13 @@ screen_t screens[8];
 
 /* colors for ANSI escape sequences */
 #define rgb(r, g, b) ((r << 16) + (g << 8) + b)
-uint32_t ansi_colors[] = 
+static const uint32_t ansi_colors[] = 
 {
-    rgb(0,0,0),        /* 0- black */
-    rgb(222,56,43),        /* 1- red */
-    rgb(57,181,74),        /* 2- green */
-    rgb(255,199,6),        /* 3- yellow */
-    rgb(0,111,184),        /* 4- blue */
-    /*rgb(118,38,113),*/    /* 5- magenta */
-    rgb(203,2,69),        /* 5- magenta */
-    rgb(44,181,233),    /* 6- cyan */
-    rgb(204,204,204),    /* 7- white */
+    0x3F3F3F, 0x705050, 0x60B48A, 0xDFAF8F,
+    0x9AB8D7, 0xDC8CC3, 0x8CD0D3, 0xDCDCDC
 };
+
+static const uint32_t background = 0x1C101C;
 
 void screen_init()
 {
@@ -72,6 +67,8 @@ void screen_init()
         ERROR("UEFI not implemented yet.\n");
         while(1);
     }
+
+    clear_screen(&screens[0], background);
 }
 
 screen_t *get_bootfb()
@@ -94,6 +91,17 @@ static inline void *pixel_offset(screen_t *screen, uint16_t x, uint16_t y)
         ptr += screen->framebuffer;
 
     return (void *)ptr;
+}
+
+void clear_screen(screen_t *screen, uint32_t color)
+{
+    uint32_t *pixels = pixel_offset(screen, 0, 0);
+    size_t count = screen->size / sizeof(uint32_t);
+
+    for(size_t i = 0; i < count; i++)
+        pixels[i] = color;
+
+    redraw(screen);
 }
 
 static void scroll(screen_t *screen)
@@ -139,7 +147,7 @@ static void parse_escape_sequence(screen_t *screen)
 
         if(number == 0)        /* reset */
         {
-            screen->bg = ansi_colors[0];
+            screen->bg = background;
             screen->fg = ansi_colors[7];
         } else if(number >= 30 && number <= 37)
         {

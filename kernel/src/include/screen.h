@@ -32,6 +32,7 @@ typedef struct screen_t
 } screen_t;
 
 void screen_init();
+void clear_screen(screen_t *, uint32_t);
 void putc(screen_t *, char);
 void puts(screen_t *, const char *);
 screen_t *get_bootfb();
