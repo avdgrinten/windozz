@@ -33,7 +33,7 @@ void kmain(boot_info_t *boot_info_tmp)
     acpi_init((rsdp_t *)boot_info.acpi_rsdp);
     apic_init();
     timer_init();
-    acpi_create_namespace(acpi_instance.dsdt);
+    lai_create_namespace(acpi_instance.dsdt);
     acpi_install_irq();
     smp_boot();
     sched_init();

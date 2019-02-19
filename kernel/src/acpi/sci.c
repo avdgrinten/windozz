@@ -19,12 +19,12 @@ void acpi_install_irq()
     /* install IRQ handler */
     acpi_sci_line = irq_configure(acpi_instance.fadt->sci_irq, (uintptr_t)&acpi_sci_stub, LEVEL | ACTIVE_LOW);
     irq_unmask(acpi_sci_line);
-    acpi_enable(1);
+    lai_enable_acpi(1);
 }
 
 void acpi_sci()
 {
-    acpi_read_event();
+    lai_read_event();
     /*DEBUG("ACPI SCI occurred, event data 0x%04X: %s %s %s\n", event,
         event & ACPI_POWER_BUTTON ? "power button" : "",
         event & ACPI_SLEEP_BUTTON ? "sleep button" : "",
