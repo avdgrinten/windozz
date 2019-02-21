@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <stdarg.h>
 #include <stdint.h>
 
 #define LEVEL_DEBUG           1
@@ -21,4 +22,5 @@ int display_debug;
 
 void debug_init();
 int debug_printf(int, const char *, const char *, ...);
+int debug_vprintf(int, const char *, const char *, va_list);
 size_t copy_number(char *, const char *);

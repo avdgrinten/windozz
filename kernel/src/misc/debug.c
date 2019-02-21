@@ -103,11 +103,18 @@ int debug_puts(const char *string)
 
 int debug_printf(int level, const char *module, const char *fmt, ...)
 {
+	va_list args;
+    va_start(args, fmt);
+	int status = debug_vprintf(level, module, fmt, args);
+	va_end(args);
+	return status;
+}
+
+int debug_vprintf(int level, const char *module, const char *fmt, va_list args)
+{
     acquire(&e9_mutex);
 
     int size = 0;
-    va_list args;
-    va_start(args, fmt);
 
     char integer_buffer[96];
     char padded_buffer[96];
@@ -272,8 +279,6 @@ int debug_printf(int level, const char *module, const char *fmt, ...)
         size++;
         i++;
     }
-
-    va_end(args);
 
     release(&e9_mutex);
     return size;
