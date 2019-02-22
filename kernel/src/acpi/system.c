@@ -62,11 +62,6 @@ void *laihost_realloc(void *ptr, size_t count)
     return krealloc(ptr, count);
 }
 
-void *laihost_calloc(size_t n, size_t size)
-{
-    return kcalloc(n, size);
-}
-
 void laihost_free(void *ptr)
 {
     kfree(ptr);
