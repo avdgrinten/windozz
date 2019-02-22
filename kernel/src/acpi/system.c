@@ -17,10 +17,8 @@
 
 // Any OS using lai must provide implementations of the following functions
 
-void laihost_log(int level, const char *fmt, ...)
+void laihost_log(int level, const char *fmt, va_list args)
 {
-	va_list args;
-	va_start(args, fmt);
     switch(level)
     {
     case LAI_DEBUG_LOG:
@@ -29,15 +27,11 @@ void laihost_log(int level, const char *fmt, ...)
     default:
         debug_vprintf(LEVEL_WARN, "acpi", fmt, args);
     }
-	va_end(args);
 }
 
-void laihost_panic(const char *fmt, ...)
+void laihost_panic(const char *fmt, va_list args)
 {
-	va_list args;
-	va_start(args, fmt);
     debug_printf(LEVEL_ERROR, "acpi", fmt, args);
-	va_end(args);
     while(1)
         ;
 }
