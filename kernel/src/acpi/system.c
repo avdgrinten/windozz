@@ -52,21 +52,6 @@ void *laihost_scan(char *name, size_t index)
         return NULL;
 }
 
-void *lai_memcpy(void *dest, const void *src, size_t count)
-{
-    return memcpy(dest, src, count);
-}
-
-void *lai_memmove(void *dest, const void *src, size_t count)
-{
-    return memmove(dest, src, count);
-}
-
-char *lai_strcpy(char *dest, const char *src)
-{
-    return strcpy(dest, src);
-}
-
 void *laihost_malloc(size_t count)
 {
     return kmalloc(count);
@@ -92,26 +77,6 @@ void *laihost_map(size_t physical, size_t count)
     count += PAGE_SIZE - 1;
     count >>= PAGE_SIZE_SHIFT;
     return (void*)vmm_create_mmio(physical, count, "acpi");
-}
-
-size_t lai_strlen(const char *string)
-{
-    return strlen(string);
-}
-
-void *lai_memset(void *dest, int val, size_t count)
-{
-    return memset(dest, val, count);
-}
-
-int lai_memcmp(const void *m1, const void *m2, size_t count)
-{    
-    return memcmp(m1, m2, count);
-}
-
-int lai_strcmp(const char *s1, const char *s2)
-{
-    return strcmp(s1, s2);
 }
 
 void laihost_outb(uint16_t port, uint8_t data)
@@ -168,8 +133,4 @@ void laihost_sleep(uint64_t time)
 {
     timer_sleep(time);
 }
-
-
-
-
 
