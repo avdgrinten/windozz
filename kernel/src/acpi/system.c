@@ -8,7 +8,7 @@
 
 #include <debug.h>
 #include <string.h>
-#include <lai/core.h>
+#include <lai/host.h>
 #include <mm.h>
 #include <io.h>
 #include <pci.h>
@@ -17,7 +17,7 @@
 
 // Any OS using lai must provide implementations of the following functions
 
-void lai_log(int level, const char *fmt, ...)
+void laihost_log(int level, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -32,7 +32,7 @@ void lai_log(int level, const char *fmt, ...)
 	va_end(args);
 }
 
-void lai_panic(const char *fmt, ...)
+void laihost_panic(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -42,7 +42,7 @@ void lai_panic(const char *fmt, ...)
         ;
 }
 
-void *lai_scan(char *name, size_t index)
+void *laihost_scan(char *name, size_t index)
 {
     void *ptr;
     acpi_status_t status = acpi_find_table(&ptr, name, index);
@@ -67,27 +67,27 @@ char *lai_strcpy(char *dest, const char *src)
     return strcpy(dest, src);
 }
 
-void *lai_malloc(size_t count)
+void *laihost_malloc(size_t count)
 {
     return kmalloc(count);
 }
 
-void *lai_realloc(void *ptr, size_t count)
+void *laihost_realloc(void *ptr, size_t count)
 {
     return krealloc(ptr, count);
 }
 
-void *lai_calloc(size_t n, size_t size)
+void *laihost_calloc(size_t n, size_t size)
 {
     return kcalloc(n, size);
 }
 
-void lai_free(void *ptr)
+void laihost_free(void *ptr)
 {
     kfree(ptr);
 }
 
-void *lai_map(size_t physical, size_t count)
+void *laihost_map(size_t physical, size_t count)
 {
     count += PAGE_SIZE - 1;
     count >>= PAGE_SIZE_SHIFT;
@@ -114,37 +114,37 @@ int lai_strcmp(const char *s1, const char *s2)
     return strcmp(s1, s2);
 }
 
-void lai_outb(uint16_t port, uint8_t data)
+void laihost_outb(uint16_t port, uint8_t data)
 {
     outb(port, data);
 }
 
-void lai_outw(uint16_t port, uint16_t data)
+void laihost_outw(uint16_t port, uint16_t data)
 {
     outw(port, data);
 }
 
-void lai_outd(uint16_t port, uint32_t data)
+void laihost_outd(uint16_t port, uint32_t data)
 {
     outd(port, data);
 }
 
-uint8_t lai_inb(uint16_t port)
+uint8_t laihost_inb(uint16_t port)
 {
     return inb(port);
 }
 
-uint16_t lai_inw(uint16_t port)
+uint16_t laihost_inw(uint16_t port)
 {
     return inw(port);
 }
 
-uint32_t lai_ind(uint16_t port)
+uint32_t laihost_ind(uint16_t port)
 {
     return ind(port);
 }
 
-void lai_pci_write(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offset, uint32_t data)
+void laihost_pci_write(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offset, uint32_t data)
 {
     pci_dev_t dev;
     dev.bus = bus;
@@ -154,7 +154,7 @@ void lai_pci_write(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offset,
     pci_write(&dev, offset, data);
 }
 
-uint32_t lai_pci_read(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offset)
+uint32_t laihost_pci_read(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offset)
 {
     pci_dev_t dev;
     dev.bus = bus;
@@ -164,7 +164,7 @@ uint32_t lai_pci_read(uint8_t bus, uint8_t slot, uint8_t function, uint16_t offs
     return pci_read(&dev, offset);
 }
 
-void lai_sleep(uint64_t time)
+void laihost_sleep(uint64_t time)
 {
     timer_sleep(time);
 }
